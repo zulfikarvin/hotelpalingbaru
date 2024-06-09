@@ -129,6 +129,30 @@ def delete_billing(bill_id: str):
     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
+# --------------------
+# Get Data Guest All
+# --------------------
+async def get_guest_from_web():
+    url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok tour guide
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
+
+class Government(BaseModel):
+    nik: int
+    nama: str
+    kota: str
+
+@app.get("/guest", response_model=List[Government])
+async def get_guests():
+    data_government = await get_guest_from_web()
+    return data_government
+
+# --------------------
+# Get Data Guest Individual
+# --------------------
 async def get_guest_from_web():
     url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok tour guide
     response = requests.get(url)
@@ -141,24 +165,22 @@ class Guest(BaseModel):
     nik: int
     nama: str
     kota: str
-
-@app.get("/guest", response_model=List[Guest])
+@app.get("/guests/{nik_id}", response_model=Optional[Guest])
 async def get_guests():
     data_government = await get_guest_from_web()
     return data_government
 
-@app.get("/guests/{nik_id}", response_model=Optional[Guest])
-def get_guest(nik_id: str):
-    index = get_index(guests, 'NIKID', nik_id)
-    if index is not None:
-        return guests[index]
-    raise HTTPException(status_code=404, detail="Guest not found")
-
+# --------------------
+# Post Data Guest
+# --------------------
 @app.post("/guests")
 def create_guest(guest: Guest):
     guests.append(guest.dict())
     return {"message": "Guest created successfully"}
 
+# --------------------
+# Put Data Guest
+# --------------------
 @app.put("/guests/{nik_id}")
 def update_guest(nik_id: str, guest: Guest):
     index = get_index(guests, 'NIKID', nik_id)
@@ -167,6 +189,9 @@ def update_guest(nik_id: str, guest: Guest):
         return {"message": "Guest updated successfully"}
     raise HTTPException(status_code=404, detail="Guest not found")
 
+# --------------------
+# Delete Data Guest
+# --------------------
 @app.delete("/guests/{nik_id}")
 def delete_guest(nik_id: str):
     index = get_index(guests, 'NIKID', nik_id)
