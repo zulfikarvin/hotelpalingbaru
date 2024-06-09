@@ -17,7 +17,13 @@ class Billing(BaseModel):
     PaymentStatus: str
     CreditCardNumber: str
 
-
+class Guest(BaseModel):
+    NIKID: str
+    Name: str
+    Email: str
+    Phone: str
+    Address: str
+    CreditCardNumber: str
 
 class Reservation(BaseModel):
     ReservationID: str
@@ -129,23 +135,9 @@ def delete_billing(bill_id: str):
     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
-async def get_guest_from_web():
-    url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok tour guide
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
-
-class Guest(BaseModel):
-    nik: int
-    nama: str
-    kota: str
-
-@app.get("/guest", response_model=List[Guest])
-async def get_guests():
-    data_government = await get_guest_from_web()
-    return data_government
+@app.get("/guests", response_model=List[Guest])
+def get_guests():
+    return guests
 
 @app.get("/guests/{nik_id}", response_model=Optional[Guest])
 def get_guest(nik_id: str):
@@ -213,13 +205,13 @@ def delete_reservation(reservation_id: str):
 def get_reviews():
     return reviews
     
-
-@app.get("/reviews/{review_id}", response_model=Optional[Review])
+@app.get("/reviews/{review_id}")
 def get_review(review_id: str):
     index = get_index(reviews, 'ReviewID', review_id)
     if index is not None:
         return reviews[index]
     raise HTTPException(status_code=404, detail="Review not found")
+
 
 @app.post("/reviews")
 def create_review(review: Review):
@@ -231,8 +223,10 @@ def update_review(review_id: str, review: Review):
     index = get_index(reviews, 'ReviewID', review_id)
     if index is not None:
         reviews[index] = review.dict()
-        return {"message": "Review updated successfully"}
-    raise HTTPException(status_code=404, detail="Review not found")
+        return {"message": "Review berhasil diperbarui"}
+    else:
+        raise HTTPException(status_code=404, detail="Review tidak dapat ditemukan")
+
 
 @app.delete("/reviews/{review_id}")
 def delete_review(review_id: str):
@@ -240,7 +234,7 @@ def delete_review(review_id: str):
     if index is not None:
         reviews.pop(index)
         return {"message": "Review deleted successfully"}
-    raise HTTPException(status_code=404, detail="Review not found")
+    raise HTTPException(status_code=404, detail="Review not found")
 
 @app.get('/tourguide',response_model=List[tourguide])
 async def get_tourguide():
@@ -282,8 +276,6 @@ def create_room(room: Room):
     rooms.append(room.dict())
     return {"message": "Room created successfully"}
 
-
-
 @app.put("/rooms/{room_id}")
 def update_room(room_id: str, room: Room):
     index = get_index(rooms, 'RoomID', room_id)
@@ -301,15 +293,15 @@ def delete_room(room_id: str):
     raise HTTPException(status_code=404, detail="Room not found")
 
 # Endpoint untuk mengambil data tour guide
-# @app.get("/tourguide")
-# def get_tourguide():
-#     url = "https://tour-guide-ks4n.onrender.com/tourguide/#/"
-#     response = requests.get(url)
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         raise HTTPException(status_code=response.status_code, detail="Gagal mengambil Tour Guide.")
+@app.get("/tourguide")
+def get_tourguide():
+    url = "https://tour-guide-ks4n.onrender.com/tourguide/#/"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail="Gagal mengambil Tour Guide.")
 
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
