@@ -301,6 +301,30 @@ def delete_guest(nik: str):
 
 
 # CRUD operations for Reservations
+async def get_sewa_from_web():
+    url = "https://rental-mobil-api.onrender.com/penyewaan"  #endpoint kelompok tour guide
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Mobil.")
+
+class Penyewaan(BaseModel):
+    id_penyewaan: str
+
+@app.get("/penyewaan", response_model=List[Penyewaan])
+async def get_penyewaan():
+    data_penyewaan = await get_sewa_from_web()
+    return data_penyewaan
+
+@app.get("/penyewaan/{reservation_id}", response_model=Optional[Penyewaan])
+async def get_sewa(reservation_id: str):
+    reservations = await get_sewa_from_web()  # Fetch billings
+    for reservation in reservations:
+        if reservation['id_penyewaan'] == reservation_id:
+            return Penyewaan(**reservation)
+    raise HTTPException(status_code=404, detail="Reservation not found")
+    
 @app.get("/reservations", response_model=List[Reservation])
 def get_reservations():
     return reservations
@@ -325,13 +349,13 @@ def update_reservation(reservation_id: str, reservation: Reservation):
         return {"message": "Reservation updated successfully"}
     raise HTTPException(status_code=404, detail="Reservation not found")
 
-@app.delete("/reservations/{reservation_id}")
-def delete_reservation(reservation_id: str):
+@app.delete("/reservations/{reservation_id}", response_model=dict)
+def delete_reservation(reservation_id: str = Path(..., title="Reservation ID", description="The ID of the review to delete")):
     index = get_index(reservations, 'ReservationID', reservation_id)
     if index is not None:
-        reservations.pop(index)
-        return {"message": "Reservation deleted successfully"}
-    raise HTTPException(status_code=404, detail="Reservation not found")
+        deleted_reservation = reservations.pop(index)
+        return {"message": "Review deleted successfully", "deleted_review": deleted_reservation}
+    raise HTTPException(status_code=404, detail="Review not found")
 
 # CRUD operations for Reviews
 @app.get("/reviews", response_model=List[Review])
@@ -367,6 +391,7 @@ def delete_review(review_id: str = Path(..., title="Review ID", description="The
     raise HTTPException(status_code=404, detail="Review not found")
 
 # CRUD operations for Rooms
+<<<<<<< HEAD
 async def get_insurance_endpoint():
     url = "https://eai-fastapi.onrender.com/asuransi"  #endpoint kelompok asuransi
     response = requests.get(url)
@@ -402,6 +427,8 @@ async def get_insurance(id_asuransi: str):
             return insurance(**insur)
     raise HTTPException(status_code=404, detail="Billing not found")
 
+=======
+>>>>>>> 03d980cb7c2ecef1eb3f2de8e746f5fa11a82565
 @app.get("/rooms", response_model=List[Room])
 def get_rooms():
     return rooms
@@ -444,6 +471,6 @@ def get_tourguide():
     else:
         raise HTTPException(status_code=response.status_code, detail="Gagal mengambil Tour Guide.")
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

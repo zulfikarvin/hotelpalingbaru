@@ -1,6 +1,6 @@
 step 1 install fastAPI
 ====================================
-pip install fastapi
+pip install fastap
 pip install "uvicorn[standard]"
 
 step 2 install pydantic
