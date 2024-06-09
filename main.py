@@ -65,11 +65,11 @@ billings = [
 ]
 
 guests = [
-    {"NIKID": "101", "Name": "Ale", "Email": "aleale@gmail.com", "Phone": "08123456789", "Address": "Suite 839 Jl. Hayamwuruk No. 89, Berau, KU 39222", "CreditCardNumber": "1234"},
-    {"NIKID": "102", "Name": "Leo", "Email": "leoamalia@yahoo.co.id", "Phone": "08789012345", "Address": "Jl. MH. Thamrin No. 24, Sumbawa, KB 22844", "CreditCardNumber": "5689"},
-    {"NIKID": "103", "Name": "Lea", "Email": "leavilia.jet@gmail.com", "Phone": "08134567890", "Address": "Jl. Gajahmada No. 50, Jambi, SG 40689", "CreditCardNumber": "1357"},
-    {"NIKID": "104", "Name": "Satoru", "Email": "satorusatria@gmail.com", "Phone": "08778901234", "Address": "Jl. Hayamwuruk No. 30, Bitung, SL 21490", "CreditCardNumber": "2468"},
-    {"NIKID": "105", "Name": "Suguru", "Email": "suguruarianto@student.telkomuniversity.ac.id", "Phone": "08156789012", "Address": "Jl. Gatot Soebroto No. 70, Toba Samosir, JA 83706", "CreditCardNumber": "1987"},
+    {"NIKID": "101", "Name": "Ale", "Email": "aleale@gmail.com", "Phone": "08123456789", "Address": "Suite 839 Jl. Hayamwuruk No. 89, Berau, KU 39222", "CreditCardNumber": "305123456"},
+    {"NIKID": "102", "Name": "Leo", "Email": "leoamalia@yahoo.co.id", "Phone": "08789012345", "Address": "Jl. MH. Thamrin No. 24, Sumbawa, KB 22844", "CreditCardNumber": "305123457"},
+    {"NIKID": "103", "Name": "Lea", "Email": "leavilia.jet@gmail.com", "Phone": "08134567890", "Address": "Jl. Gajahmada No. 50, Jambi, SG 40689", "CreditCardNumber": "305123458"},
+    {"NIKID": "104", "Name": "Satoru", "Email": "satorusatria@gmail.com", "Phone": "08778901234", "Address": "Jl. Hayamwuruk No. 30, Bitung, SL 21490", "CreditCardNumber": "305123459"},
+    {"NIKID": "105", "Name": "Suguru", "Email": "suguruarianto@student.telkomuniversity.ac.id", "Phone": "08156789012", "Address": "Jl. Gatot Soebroto No. 70, Toba Samosir, JA 83706", "CreditCardNumber": "305123460"},
 ]
 
 reservations = [
@@ -162,25 +162,21 @@ async def get_guests():
 # --------------------
 # Get Data Guest Individual
 # --------------------
+@app.get("/guests/{guest_id}", response_model=Optional[Government])
+async def get_guest(guest_id: int):
+    guests = await get_guest_from_web() 
+    for guest in guests:
+        if guest['nik'] == guest_id:
+            return Government(**guest)
+    raise HTTPException(status_code=404, detail="Billing not found")
 
-# @app.get("/guests/{nik}", response_model=Optional[Government])
-# async def get_guests(nik: int):
-#     data_government = await get_guest_from_web(nik)
-#     return data_government
-
-# @app.get("/guests/{nik}", response_model=Optional[Review])
-# def get_review(nik: int = Path(..., title="Review ID", description="The ID of the review to retrieve")):
-#     index = get_index(guests, 'NIKID', nik)
-#     if index is not None:
-#         return reviews[index]
-#     raise HTTPException(status_code=404, detail="Guest not found")
-
-@app.get("/guests/{nik}", response_model=Optional[guests])
-def get_review(nik: int = Path(..., title="Guest ID", description="The ID of the guest to retrieve")):
-    index = get_index(guests, 'NIKID', nik)
-    if index is not None:
-        return guests[index]
-    raise HTTPException(status_code=404, detail="Guest not found")
+# @app.get("/billings/{bill_id}", response_model=Optional[Billing])
+# async def get_billing(bill_id: int):
+#     billings = await get__from_web()  # Fetch billings
+#     for billing in billings:
+#         if billing['id'] == bill_id:
+#             return Billing(**billing)
+#     raise HTTPException(status_code=404, detail="Billing not found")
 
 # --------------------
 # Check Data Get Guest
@@ -223,16 +219,17 @@ def delete_guest(nik: str):
 # Get Data Kartu Kredit All
 # --------------------
 async def get_kartu_from_web():
-    url = " "  #endpoint kelompok kartu kredit
+    url = "https://jumantaradev.my.id/api/hotel"  #endpoint kelompok kartu kredit
     response = requests.get(url)
     if response.status_code == 200:
-        return response.json()
+        data = response.json()
+        return data['data']['data']
     else:
         raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Kartu Kredit.")
 
 class Bank(BaseModel):
-    # tolong check ulang ke padlan
-    nomorkartu: str 
+    id: int
+    name: str 
 
 @app.get("/kartu_kredit", response_model=List[Bank])
 async def get_kartu():
@@ -243,31 +240,39 @@ async def get_kartu():
 # Get Data Kartu Kredit Individual
 # --------------------
 
-@app.get("/kartu_kredit/{kartukredit}", response_model=Optional[Government])
-async def get_guests(nik: int):
-    data_kartu = await get_guest_from_web(kartukredit)
-    return data_kartu
+@app.get("/kartu_kredit/{kartukredit}", response_model=Optional[Bank])
+async def get_kartu(kartu_id: int):
+    cards = await get_kartu_from_web() 
+    for card in cards:
+        if card['id'] == kartu_id:
+            return Bank(**card)
+    raise HTTPException(status_code=404, detail="Kartu not found")
 
 # --------------------
 # Check Data Get Kartu Kredit
 # --------------------
-@app.get("/kartu_kredit", response_model=List[Guest])
-def get_guests():
+@app.get("/kartu_kredit", response_model=List[Bank])
+def get_kartu():
     return guests
 
 # --------------------
 # Delete Data Kartu Kredit
 # --------------------
 @app.delete("/kartu_kredit/{kartukredit}")
-# check sama padlan juga yang ini
-def delete_kartu(kartukredit: str):
-    index = get_index(guests, 'CreditCardNumber', kartukredit)
+def delete_kartu(id: int):
+    index = get_index(guests, 'CreditCardNumber', id)
     if index is not None:
         guests.pop(index)
         return {"message": "Kartu Kredit deleted successfully"}
     raise HTTPException(status_code=404, detail="Kartu Kredit not found")
 
-
+@app.delete("/guests/{nik}")
+def delete_guest(nik: str):
+    index = get_index(guests, 'NIKID', nik)
+    if index is not None:
+        guests.pop(index)
+        return {"message": "Guest deleted successfully"}
+    raise HTTPException(status_code=404, detail="Guest not found")
 
 
 # CRUD operations for Reservations
