@@ -115,7 +115,7 @@ class Billing(BaseModel):
 @app.get("/billings", response_model=List[Billing])
 async def get_billings():
     data_bank = await get_bank_from_web()
-    return billings
+    return data_bank
 
 @app.get("/billings/{bill_id}", response_model=Billing)
 def get_billing(bill_id: int):
