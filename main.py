@@ -9,12 +9,12 @@ app = FastAPI(
 )
 
 # Define Pydantic models for each table
-class Billing(BaseModel):
-    BillID: str
-    ReservationID: str
-    TotalAmount: int
-    PaymentStatus: str
-    CreditCardNumber: str
+# class Billing(BaseModel):
+#     BillID: str
+#     ReservationID: str
+#     TotalAmount: int
+#     PaymentStatus: str
+#     CreditCardNumber: str
 
 class Guest(BaseModel):
     NIKID: str
@@ -92,36 +92,59 @@ def get_index(data, key, value):
     return None
 
 # CRUD operations for Billings
+billings = []
+async def get_bank_from_web():
+    url = "https://jumantaradev.my.id/api/hotel"  # endpoint kelompok bank
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise HTTPException(status_code=response.status_code, detail="Failed to fetch data from the bank API.")
+    
+class Billing(BaseModel):
+    id: int
+    jenis: str
+    name: str
+    total: str
+    saldo: str
+    
+@app.on_event("startup")
+async def startup_event():
+    data = await get_bank_from_web()
+    for item in data:
+        billings.append(Billing(**item))
+
 @app.get("/billings", response_model=List[Billing])
-def get_billings():
+async def get_billings():
     return billings
 
 @app.get("/billings/{bill_id}", response_model=Optional[Billing])
-def get_billing(bill_id: str):
-    index = get_index(billings, 'BillID', bill_id)
-    if index is not None:
-        return billings[index]
+async def get_billing(bill_id: int):
+    for billing in billings:
+        if billing.id == bill_id:
+            return billing
     raise HTTPException(status_code=404, detail="Billing not found")
 
-@app.post("/billings")
-def create_billing(billing: Billing):
-    billings.append(billing.dict())
-    return {"message": "Billing created successfully"}
+@app.post("/billings", response_model=Billing)
+async def create_billing(billing: Billing):
+    billings.append(billing)
+    return billing
 
-@app.put("/billings/{bill_id}")
-def update_billing(bill_id: str, billing: Billing):
-    index = get_index(billings, 'BillID', bill_id)
-    if index is not None:
-        billings[index] = billing.dict()
-        return {"message": "Billing updated successfully"}
+@app.put("/billings/{bill_id}", response_model=Billing)
+async def update_billing(bill_id: int, billing: Billing):
+    for index, bill in enumerate(billings):
+        if bill.id == bill_id:
+            billings[index] = billing
+            return billing
     raise HTTPException(status_code=404, detail="Billing not found")
 
 @app.delete("/billings/{bill_id}")
-def delete_billing(bill_id: str):
-    index = get_index(billings, 'BillID', bill_id)
-    if index is not None:
-        billings.pop(index)
-        return {"message": "Billing deleted successfully"}
+async def delete_billing(bill_id: int):
+    for index, bill in enumerate(billings):
+        if bill.id == bill_id:
+            billings.pop(index)
+            return {"message": "Billing deleted successfully"}
     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
