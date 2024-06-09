@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Path, Body
 from pydantic import BaseModel
 from typing import List, Optional
 import requests
@@ -42,8 +42,8 @@ class Review(BaseModel):
     InputDate: str
     TravelType: str
 
-class tourguide(BaseModel):
-    TravelType : str    
+class TourGuide(BaseModel):
+    TravelType: str    
 
 class Room(BaseModel):
     RoomID: str
@@ -220,62 +220,36 @@ def delete_reservation(reservation_id: str):
 @app.get("/reviews", response_model=List[Review])
 def get_reviews():
     return reviews
-    
-@app.get("/reviews/{review_id}")
-def get_review(review_id: str):
+
+@app.get("/reviews/{review_id}", response_model=Optional[Review])
+def get_review(review_id: str = Path(..., title="Review ID", description="The ID of the review to retrieve")):
     index = get_index(reviews, 'ReviewID', review_id)
     if index is not None:
         return reviews[index]
     raise HTTPException(status_code=404, detail="Review not found")
 
-
-@app.post("/reviews")
-def create_review(review: Review):
+@app.post("/reviews", response_model=Review)
+def create_review(review: Review = Body(..., embed=True)):
     reviews.append(review.dict())
-    return {"message": "Review created successfully"}
+    return review
 
-@app.put("/reviews/{review_id}")
-def update_review(review_id: str, review: Review):
+@app.put("/reviews/{review_id}", response_model=Review)
+def update_review(review_id: str = Path(..., title="Review ID", description="The ID of the review to update"), review: Review = Body(..., embed=True)):
     index = get_index(reviews, 'ReviewID', review_id)
     if index is not None:
         reviews[index] = review.dict()
-        return {"message": "Review berhasil diperbarui"}
-    else:
-        raise HTTPException(status_code=404, detail="Review tidak dapat ditemukan")
+        return review
+    raise HTTPException(status_code=404, detail="Review not found")
 
-
-@app.delete("/reviews/{review_id}")
-def delete_review(review_id: str):
+@app.delete("/reviews/{review_id}", response_model=dict)
+def delete_review(review_id: str = Path(..., title="Review ID", description="The ID of the review to delete")):
     index = get_index(reviews, 'ReviewID', review_id)
     if index is not None:
-        reviews.pop(index)
-        return {"message": "Review deleted successfully"}
-    raise HTTPException(status_code=404, detail="Review not found")
-
-@app.get('/tourguide',response_model=List[tourguide])
-async def get_tourguide():
-    data_tourguide = await get_tourguide_from_web()
-    return data_tourguide
+        deleted_review = reviews.pop(index)
+        return {"message": "Review deleted successfully", "deleted_review": deleted_review}
+    raise HTTPException(status_code=404, detail="Review not found")
 
 # CRUD operations for Rooms
-async def get_insurance_endpoint():
-    url = ""  #endpoint kelompok asuransi
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
-
-class insurance(BaseModel):
-    id_asuransi: int
-    id_room: str
-    jenis_asuransi: str
-
-@app.get("/insurance", response_model=List[insurance])
-async def get_insurance():
-    data_insurance = await get_insurance_endpoint()
-    return data_insurance
-
 @app.get("/rooms", response_model=List[Room])
 def get_rooms():
     return rooms
@@ -311,13 +285,13 @@ def delete_room(room_id: str):
 # Endpoint untuk mengambil data tour guide
 @app.get("/tourguide")
 def get_tourguide():
-    url = "https://tour-guide-ks4n.onrender.com/tourguide/#/"
+    url = "https://tour-guide-ks4n.onrender.com/tourguide/"
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
     else:
         raise HTTPException(status_code=response.status_code, detail="Gagal mengambil Tour Guide.")
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
