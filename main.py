@@ -120,7 +120,7 @@ async def get_billings():
 @app.get("/billings/{bill_id}", response_model=Billing)
 def get_billing(bill_id: int):
     for billing in billings:
-        if billing.id == bill_id:
+        if billing is not None:
             return billing
     raise HTTPException(status_code=404, detail="Billing not found")
 
