@@ -87,11 +87,11 @@ reviews = [
 ]
 
 rooms = [
-    {"RoomID": "1", "RoomNumber": "100", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "305"},
-    {"RoomID": "2", "RoomNumber": "101", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "306"},
-    {"RoomID": "3", "RoomNumber": "200", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Empty", "Insurance": "307"},
-    {"RoomID": "4", "RoomNumber": "201", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Maintenance", "Insurance": "308"},
-    {"RoomID": "5", "RoomNumber": "300", "RoomType": "Kings Room", "Rate": 3000000, "Availability": "Occupied", "Insurance": "309"},
+    {"RoomID": "1", "RoomNumber": "100", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "AA04"},
+    {"RoomID": "2", "RoomNumber": "101", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "AA04"},
+    {"RoomID": "3", "RoomNumber": "200", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Empty", "Insurance": "AA04"},
+    {"RoomID": "4", "RoomNumber": "201", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Maintenance", "Insurance": "AA04"},
+    {"RoomID": "5", "RoomNumber": "300", "RoomType": "Kings Room", "Rate": 3000000, "Availability": "Occupied", "Insurance": "AA04"},
 ]
 
 # Utility functions to get the index of items
