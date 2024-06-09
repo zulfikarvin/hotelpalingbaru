@@ -208,13 +208,13 @@ def update_reservation(reservation_id: str, reservation: Reservation):
         return {"message": "Reservation updated successfully"}
     raise HTTPException(status_code=404, detail="Reservation not found")
 
-@app.delete("/reservations/{reservation_id}")
-def delete_reservation(reservation_id: str):
+@app.delete("/reservations/{reservation_id}", response_model=dict)
+def delete_reservation(reservation_id: str = Path(..., title="Reservation ID", description="The ID of the review to delete")):
     index = get_index(reservations, 'ReservationID', reservation_id)
     if index is not None:
-        reservations.pop(index)
-        return {"message": "Reservation deleted successfully"}
-    raise HTTPException(status_code=404, detail="Reservation not found")
+        deleted_reservation = reservations.pop(index)
+        return {"message": "Review deleted successfully", "deleted_review": deleted_reservation}
+    raise HTTPException(status_code=404, detail="Review not found")
 
 # CRUD operations for Reviews
 @app.get("/reviews", response_model=List[Review])
