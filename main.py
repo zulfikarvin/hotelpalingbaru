@@ -168,6 +168,22 @@ def delete_guest(nik_id: str):
     raise HTTPException(status_code=404, detail="Guest not found")
 
 # CRUD operations for Reservations
+async def get_sewa():
+    url = "masukin disini endpoint nya"  #endpoint kelompok tour guide
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Mobil.")
+
+class Penyewaan(BaseModel):
+    idPenyewaanMobil: str
+
+@app.get("/penyewaan", response_model=List[Penyewaan])
+async def get_reservations():
+    data_penyewaan = await get_sewa()
+    return data_penyewaan
+    
 @app.get("/reservations", response_model=List[Reservation])
 def get_reservations():
     return reservations
