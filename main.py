@@ -391,7 +391,6 @@ def delete_review(review_id: str = Path(..., title="Review ID", description="The
     raise HTTPException(status_code=404, detail="Review not found")
 
 # CRUD operations for Rooms
-<<<<<<< HEAD
 async def get_insurance_endpoint():
     url = "https://eai-fastapi.onrender.com/asuransi"  #endpoint kelompok asuransi
     response = requests.get(url)
@@ -427,8 +426,6 @@ async def get_insurance(id_asuransi: str):
             return insurance(**insur)
     raise HTTPException(status_code=404, detail="Billing not found")
 
-=======
->>>>>>> 03d980cb7c2ecef1eb3f2de8e746f5fa11a82565
 @app.get("/rooms", response_model=List[Room])
 def get_rooms():
     return rooms
