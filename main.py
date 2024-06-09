@@ -243,22 +243,39 @@ async def get_tourguide():
 
 # CRUD operations for Rooms
 async def get_insurance_endpoint():
-    url = ""  #endpoint kelompok asuransi
+    url = "https://eai-fastapi.onrender.com/asuransi"  #endpoint kelompok asuransi
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
     else:
-        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil insurance.")
+
+async def get_insurance_byID(id_asuransi: str):
+    url = f"https://eai-fastapi.onrender.com/asuransi/{id_asuransi}"  #endpoint kelompok asuransi
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil insurance.")
+
 
 class insurance(BaseModel):
-    id_asuransi: int
-    id_room: str
+    id_asuransi: str
     jenis_asuransi: str
+    objek: str
 
 @app.get("/insurance", response_model=List[insurance])
 async def get_insurance():
     data_insurance = await get_insurance_endpoint()
     return data_insurance
+
+@app.get("/insurance/{id_asuransi}", response_model=Optional[insurance])
+async def get_insurance(id_asuransi: str):
+    insurances = await get_insurance_endpoint()  # Fetch billings
+    for insur in insurances:
+        if insur['id_asuransi'] == id_asuransi:
+            return insurance(**insur)
+    raise HTTPException(status_code=404, detail="Billing not found")
 
 @app.get("/rooms", response_model=List[Room])
 def get_rooms():
