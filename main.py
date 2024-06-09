@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
+import requests
 
 app = FastAPI(
     title="Bandar Hotel API",
@@ -16,13 +17,7 @@ class Billing(BaseModel):
     PaymentStatus: str
     CreditCardNumber: str
 
-class Guest(BaseModel):
-    NIKID: str
-    Name: str
-    Email: str
-    Phone: str
-    Address: str
-    CreditCardNumber: str
+
 
 class Reservation(BaseModel):
     ReservationID: str
@@ -131,9 +126,23 @@ def delete_billing(bill_id: str):
     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
+async def get_guest_from_web():
+    url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok tour guide
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
+
+class Guest(BaseModel):
+    nik: str
+    nama: str
+    kota: str
+
 @app.get("/guests", response_model=List[Guest])
-def get_guests():
-    return guests
+async def get_guests():
+    data_government = await get_guest_from_web()
+    return data_government
 
 @app.get("/guests/{nik_id}", response_model=Optional[Guest])
 def get_guest(nik_id: str):
