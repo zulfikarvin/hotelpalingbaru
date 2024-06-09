@@ -168,8 +168,8 @@ def delete_guest(nik_id: str):
     raise HTTPException(status_code=404, detail="Guest not found")
 
 # CRUD operations for Reservations
-async def get_sewa():
-    url = "masukin disini endpoint nya"  #endpoint kelompok tour guide
+async def get_sewa_from_web():
+    url = "https://rental-mobil-api.onrender.com/penyewaan"  #endpoint kelompok tour guide
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
@@ -177,11 +177,11 @@ async def get_sewa():
         raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Mobil.")
 
 class Penyewaan(BaseModel):
-    idPenyewaanMobil: str
+    id_penyewaan: str
 
 @app.get("/penyewaan", response_model=List[Penyewaan])
-async def get_reservations():
-    data_penyewaan = await get_sewa()
+async def get_penyewaan():
+    data_penyewaan = await get_sewa_from_web()
     return data_penyewaan
     
 @app.get("/reservations", response_model=List[Reservation])
