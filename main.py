@@ -99,12 +99,11 @@ def get_index(data, key, value):
 billings = []
 async def get_bank_from_web():
     url = "https://jumantaradev.my.id/api/hotel"  # endpoint kelompok bank
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise HTTPException(status_code=response.status_code, detail="Failed to fetch data from the bank API.")
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail="Failed to fetch data from the bank API.")
     
 class Billing(BaseModel):
     id: int
@@ -112,19 +111,14 @@ class Billing(BaseModel):
     name: str
     total: str
     saldo: str
-    
-@app.on_event("startup")
-async def startup_event():
-    data = await get_bank_from_web()
-    for item in data:
-        billings.append(Billing(**item))
 
 @app.get("/billings", response_model=List[Billing])
 async def get_billings():
+    data_bank = await get_bank_from_web()
     return billings
 
-@app.get("/billings/{bill_id}", response_model=Optional[Billing])
-async def get_billing(bill_id: int):
+@app.get("/billings/{bill_id}", response_model=Billing)
+def get_billing(bill_id: int):
     for billing in billings:
         if billing.id == bill_id:
             return billing
@@ -150,6 +144,12 @@ async def delete_billing(bill_id: int):
             billings.pop(index)
             return {"message": "Billing deleted successfully"}
     raise HTTPException(status_code=404, detail="Billing not found")
+
+# @app.on_event("startup")
+# async def startup_event():
+#     data = await get_bank_from_web()
+#     for item in data:
+#         billings.append(Billing(**item))
 
 # CRUD operations for Guests
 async def get_guest_from_web():
