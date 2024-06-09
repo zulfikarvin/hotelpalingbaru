@@ -248,6 +248,24 @@ async def get_tourguide():
     return data_tourguide
 
 # CRUD operations for Rooms
+async def get_insurance_endpoint():
+    url = ""  #endpoint kelompok asuransi
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
+
+class insurance(BaseModel):
+    id_asuransi: int
+    id_room: str
+    jenis_asuransi: str
+
+@app.get("/insurance", response_model=List[insurance])
+async def get_insurance():
+    data_insurance = await get_insurance_endpoint()
+    return data_insurance
+
 @app.get("/rooms", response_model=List[Room])
 def get_rooms():
     return rooms
@@ -263,6 +281,8 @@ def get_room(room_id: str):
 def create_room(room: Room):
     rooms.append(room.dict())
     return {"message": "Room created successfully"}
+
+
 
 @app.put("/rooms/{room_id}")
 def update_room(room_id: str, room: Room):
@@ -281,15 +301,15 @@ def delete_room(room_id: str):
     raise HTTPException(status_code=404, detail="Room not found")
 
 # Endpoint untuk mengambil data tour guide
-@app.get("/tourguide")
-def get_tourguide():
-    url = "https://tour-guide-ks4n.onrender.com/tourguide/#/"
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail="Gagal mengambil Tour Guide.")
+# @app.get("/tourguide")
+# def get_tourguide():
+#     url = "https://tour-guide-ks4n.onrender.com/tourguide/#/"
+#     response = requests.get(url)
+#     if response.status_code == 200:
+#         return response.json()
+#     else:
+#         raise HTTPException(status_code=response.status_code, detail="Gagal mengambil Tour Guide.")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
