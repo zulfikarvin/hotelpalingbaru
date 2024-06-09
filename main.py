@@ -30,7 +30,7 @@ class Reservation(BaseModel):
     RoomID: str
     CheckInDate: str
     CheckOutDate: str
-    TotalAmount: int
+    TotalAmount: float
     idPenyewaanMobil: str
 
 class Review(BaseModel):
