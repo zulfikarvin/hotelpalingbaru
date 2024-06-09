@@ -58,13 +58,7 @@ class Room(BaseModel):
 #     {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "1987"},
 # ]
 
-# guests = [
-#     {"NIKID": "101", "Name": "Ale", "Email": "aleale@gmail.com", "Phone": "08123456789", "Address": "Suite 839 Jl. Hayamwuruk No. 89, Berau, KU 39222", "CreditCardNumber": "1234"},
-#     {"NIKID": "102", "Name": "Leo", "Email": "leoamalia@yahoo.co.id", "Phone": "08789012345", "Address": "Jl. MH. Thamrin No. 24, Sumbawa, KB 22844", "CreditCardNumber": "5689"},
-#     {"NIKID": "103", "Name": "Lea", "Email": "leavilia.jet@gmail.com", "Phone": "08134567890", "Address": "Jl. Gajahmada No. 50, Jambi, SG 40689", "CreditCardNumber": "1357"},
-#     {"NIKID": "104", "Name": "Satoru", "Email": "satorusatria@gmail.com", "Phone": "08778901234", "Address": "Jl. Hayamwuruk No. 30, Bitung, SL 21490", "CreditCardNumber": "2468"},
-#     {"NIKID": "105", "Name": "Suguru", "Email": "suguruarianto@student.telkomuniversity.ac.id", "Phone": "08156789012", "Address": "Jl. Gatot Soebroto No. 70, Toba Samosir, JA 83706", "CreditCardNumber": "1987"},
-# ]
+guests = []
 
 # reservations = [
 #     {"ReservationID": "1", "NIKID": "101", "RoomID": "1", "CheckInDate": "2024-10-27", "CheckOutDate": "2024-10-28", "TotalAmount": 1000000, "idPenyewaanMobil": "001"},
@@ -131,33 +125,47 @@ def delete_billing(bill_id: str):
     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
+def get_index(data_list, key, value):
+    for index, item in enumerate(data_list):
+        if item[key] == value:
+            return index
+    return None
+
+def fetch_guest_data(nik_id: str) -> Optional[Guest]:
+    url = f"https://api-government.onrender.com/penduduk/{nik_id}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return Guest(**data)
+    return None
+
 @app.get("/guests", response_model=List[Guest])
 def get_guests():
     return guests
 
-@app.get("/guests/{nik_id}", response_model=Optional[Guest])
+@app.get("/guests/{nik_id}", response_model=Guest)
 def get_guest(nik_id: str):
-    index = get_index(guests, 'NIKID', nik_id)
+    guest = fetch_guest_data(nik_id)
+    if guest is not None:
+        return guest
+    raise HTTPException(status_code=404, detail="Guest not found")
+
+@app.post("/guests", response_model=Guest)
+def create_guest(guest: Guest):
+    guests.append(guest)
+    return guest
+
+@app.put("/guests/{nik_id}", response_model=Guest)
+def update_guest(nik_id: str, guest: Guest):
+    index = get_index([guest.dict() for guest in guests], 'NIKID', nik_id)
     if index is not None:
+        guests[index] = guest
         return guests[index]
     raise HTTPException(status_code=404, detail="Guest not found")
 
-@app.post("/guests")
-def create_guest(guest: Guest):
-    guests.append(guest.dict())
-    return {"message": "Guest created successfully"}
-
-@app.put("/guests/{nik_id}")
-def update_guest(nik_id: str, guest: Guest):
-    index = get_index(guests, 'NIKID', nik_id)
-    if index is not None:
-        guests[index] = guest.dict()
-        return {"message": "Guest updated successfully"}
-    raise HTTPException(status_code=404, detail="Guest not found")
-
-@app.delete("/guests/{nik_id}")
+@app.delete("/guests/{nik_id}", response_model=dict)
 def delete_guest(nik_id: str):
-    index = get_index(guests, 'NIKID', nik_id)
+    index = get_index([guest.dict() for guest in guests], 'NIKID', nik_id)
     if index is not None:
         guests.pop(index)
         return {"message": "Guest deleted successfully"}
