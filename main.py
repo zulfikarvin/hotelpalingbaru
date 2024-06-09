@@ -9,6 +9,22 @@ app = FastAPI(
     docs_url="/",
 )
 
+# Define Pydantic models for each table
+class Billing(BaseModel):
+    BillID: str
+    ReservationID: str
+    TotalAmount: int
+    PaymentStatus: str
+    CreditCardNumber: str
+
+class Guest(BaseModel):
+    NIKID: str
+    Name: str
+    Email: str
+    Phone: str
+    Address: str
+    CreditCardNumber: str
+
 class Reservation(BaseModel):
     ReservationID: str
     NIKID: str
@@ -71,11 +87,11 @@ reviews = [
 ]
 
 rooms = [
-    {"RoomID": "1", "RoomNumber": "100", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "305"},
-    {"RoomID": "2", "RoomNumber": "101", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "306"},
-    {"RoomID": "3", "RoomNumber": "200", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Empty", "Insurance": "307"},
-    {"RoomID": "4", "RoomNumber": "201", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Maintenance", "Insurance": "308"},
-    {"RoomID": "5", "RoomNumber": "300", "RoomType": "Kings Room", "Rate": 3000000, "Availability": "Occupied", "Insurance": "309"},
+    {"RoomID": "1", "RoomNumber": "100", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "AA04"},
+    {"RoomID": "2", "RoomNumber": "101", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "AA04"},
+    {"RoomID": "3", "RoomNumber": "200", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Empty", "Insurance": "AA04"},
+    {"RoomID": "4", "RoomNumber": "201", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Maintenance", "Insurance": "AA04"},
+    {"RoomID": "5", "RoomNumber": "300", "RoomType": "Kings Room", "Rate": 3000000, "Availability": "Occupied", "Insurance": "AA04"},
 ]
 
 # Utility functions to get the index of items
@@ -144,46 +160,9 @@ async def delete_billing(bill_id: int):
 #     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
-# --------------------
-# Get Data Guest All
-# --------------------
-async def get_guest_from_web():
-    url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok tour guide
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
-
-class Government(BaseModel):
-    nik: int
-    nama: str
-    kota: str
-
-@app.get("/guest", response_model=List[Government])
-async def get_guests():
-    data_government = await get_guest_from_web()
-    return data_government
-
-# --------------------
-# Get Data Guest Individual
-# --------------------
-async def get_guest_from_web():
-    url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok tour guide
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
-
-class Guest(BaseModel):
-    nik: int
-    nama: str
-    kota: str
-@app.get("/guests/{nik_id}", response_model=Optional[Guest])
-async def get_guests():
-    data_government = await get_guest_from_web()
-    return data_government
+@app.get("/guests", response_model=List[Guest])
+def get_guests():
+    return guests
 
 # --------------------
 # Post Data Guest
@@ -253,13 +232,13 @@ def delete_reservation(reservation_id: str):
 def get_reviews():
     return reviews
     
-
-@app.get("/reviews/{review_id}", response_model=Optional[Review])
+@app.get("/reviews/{review_id}")
 def get_review(review_id: str):
     index = get_index(reviews, 'ReviewID', review_id)
     if index is not None:
         return reviews[index]
     raise HTTPException(status_code=404, detail="Review not found")
+
 
 @app.post("/reviews")
 def create_review(review: Review):
@@ -271,8 +250,10 @@ def update_review(review_id: str, review: Review):
     index = get_index(reviews, 'ReviewID', review_id)
     if index is not None:
         reviews[index] = review.dict()
-        return {"message": "Review updated successfully"}
-    raise HTTPException(status_code=404, detail="Review not found")
+        return {"message": "Review berhasil diperbarui"}
+    else:
+        raise HTTPException(status_code=404, detail="Review tidak dapat ditemukan")
+
 
 @app.delete("/reviews/{review_id}")
 def delete_review(review_id: str):
@@ -280,7 +261,7 @@ def delete_review(review_id: str):
     if index is not None:
         reviews.pop(index)
         return {"message": "Review deleted successfully"}
-    raise HTTPException(status_code=404, detail="Review not found")
+    raise HTTPException(status_code=404, detail="Review not found")
 
 @app.get('/tourguide',response_model=List[tourguide])
 async def get_tourguide():
@@ -288,6 +269,41 @@ async def get_tourguide():
     return data_tourguide
 
 # CRUD operations for Rooms
+async def get_insurance_endpoint():
+    url = "https://eai-fastapi.onrender.com/asuransi"  #endpoint kelompok asuransi
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil insurance.")
+
+async def get_insurance_byID(id_asuransi: str):
+    url = f"https://eai-fastapi.onrender.com/asuransi/{id_asuransi}"  #endpoint kelompok asuransi
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil insurance.")
+
+
+class insurance(BaseModel):
+    id_asuransi: str
+    jenis_asuransi: str
+    objek: str
+
+@app.get("/insurance", response_model=List[insurance])
+async def get_insurance():
+    data_insurance = await get_insurance_endpoint()
+    return data_insurance
+
+@app.get("/insurance/{id_asuransi}", response_model=Optional[insurance])
+async def get_insurance(id_asuransi: str):
+    insurances = await get_insurance_endpoint()  # Fetch billings
+    for insur in insurances:
+        if insur['id_asuransi'] == id_asuransi:
+            return insurance(**insur)
+    raise HTTPException(status_code=404, detail="Billing not found")
+
 @app.get("/rooms", response_model=List[Room])
 def get_rooms():
     return rooms
