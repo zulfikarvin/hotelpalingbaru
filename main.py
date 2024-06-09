@@ -48,13 +48,13 @@ class Room(BaseModel):
     Insurance: str
 
 # Dummy data
-billings = [
-    {"BillID": "1", "ReservationID": "1", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "1234"},
-    {"BillID": "2", "ReservationID": "2", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "5689"},
-    {"BillID": "3", "ReservationID": "3", "TotalAmount": 4000000, "PaymentStatus": "Paid", "CreditCardNumber": "1357"},
-    {"BillID": "4", "ReservationID": "4", "TotalAmount": 2000000, "PaymentStatus": "Paid", "CreditCardNumber": "2468"},
-    {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "1987"},
-]
+# billings = [
+#     {"BillID": "1", "ReservationID": "1", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "1234"},
+#     {"BillID": "2", "ReservationID": "2", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "5689"},
+#     {"BillID": "3", "ReservationID": "3", "TotalAmount": 4000000, "PaymentStatus": "Paid", "CreditCardNumber": "1357"},
+#     {"BillID": "4", "ReservationID": "4", "TotalAmount": 2000000, "PaymentStatus": "Paid", "CreditCardNumber": "2468"},
+#     {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "1987"},
+# ]
 
 guests = [
     {"NIKID": "101", "Name": "Ale", "Email": "aleale@gmail.com", "Phone": "08123456789", "Address": "Suite 839 Jl. Hayamwuruk No. 89, Berau, KU 39222", "CreditCardNumber": "1234"},
@@ -97,14 +97,6 @@ def get_index(data, key, value):
 
 # CRUD operations for Billings
 billings = []
-async def get_bank_from_web():
-    url = "https://jumantaradev.my.id/api/hotel"  # endpoint kelompok bank
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail="Failed to fetch data from the bank API.")
-    
 class Billing(BaseModel):
     id: int
     jenis: str
@@ -112,44 +104,42 @@ class Billing(BaseModel):
     total: str
     saldo: str
 
+async def get_bank_from_web():
+    url = "https://jumantaradev.my.id/api/hotel"  # endpoint kelompok bank
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail="Failed to fetch data from the bank API.")
+
 @app.get("/billings", response_model=List[Billing])
 async def get_billings():
     data_bank = await get_bank_from_web()
-    return data_bank
+    billings = [Billing(**item) for item in data_bank]  # Convert fetched data to Billing objects
+    return billings
 
 @app.get("/billings/{bill_id}", response_model=Billing)
-def get_billing(bill_id: int):
+async def get_billing(bill_id: int):
+    billings = await get_billings()  # Fetch billings
     for billing in billings:
-        if billing is not None:
+        if billing.id == bill_id:
             return billing
     raise HTTPException(status_code=404, detail="Billing not found")
 
 @app.post("/billings", response_model=Billing)
 async def create_billing(billing: Billing):
-    billings.append(billing)
+    # Logic to create a new billing
     return billing
 
 @app.put("/billings/{bill_id}", response_model=Billing)
 async def update_billing(bill_id: int, billing: Billing):
-    for index, bill in enumerate(billings):
-        if bill.id == bill_id:
-            billings[index] = billing
-            return billing
-    raise HTTPException(status_code=404, detail="Billing not found")
+    # Logic to update billing with given bill_id
+    return billing
 
 @app.delete("/billings/{bill_id}")
 async def delete_billing(bill_id: int):
-    for index, bill in enumerate(billings):
-        if bill.id == bill_id:
-            billings.pop(index)
-            return {"message": "Billing deleted successfully"}
-    raise HTTPException(status_code=404, detail="Billing not found")
-
-# @app.on_event("startup")
-# async def startup_event():
-#     data = await get_bank_from_web()
-#     for item in data:
-#         billings.append(Billing(**item))
+    # Logic to delete billing with given bill_id
+    return {"message": "Billing deleted successfully"}
 
 # CRUD operations for Guests
 async def get_guest_from_web():
