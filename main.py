@@ -183,6 +183,14 @@ class Penyewaan(BaseModel):
 async def get_penyewaan():
     data_penyewaan = await get_sewa_from_web()
     return data_penyewaan
+
+@app.get("/penyewaan/{reservation_id}", response_model=Optional[Penyewaan])
+async def get_sewa(reservation_id: str):
+    reservations = await get_sewa_from_web()  # Fetch billings
+    for reservation in reservations:
+        if reservation['id_penyewaan'] == reservation_id:
+            return Penyewaan(**reservation)
+    raise HTTPException(status_code=404, detail="Reservation not found")
     
 @app.get("/reservations", response_model=List[Reservation])
 def get_reservations():
