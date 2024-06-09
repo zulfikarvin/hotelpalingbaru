@@ -17,6 +17,13 @@ class Billing(BaseModel):
     PaymentStatus: str
     CreditCardNumber: str
 
+class Guest(BaseModel):
+    NIKID: str
+    Name: str
+    Email: str
+    Phone: str
+    Address: str
+    CreditCardNumber: str
 
 
 class Reservation(BaseModel):
@@ -129,6 +136,7 @@ def delete_billing(bill_id: str):
     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
+
 # --------------------
 # Get Data Guest All
 # --------------------
@@ -153,22 +161,18 @@ async def get_guests():
 # --------------------
 # Get Data Guest Individual
 # --------------------
-async def get_guest_from_web():
-    url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok tour guide
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
 
-class Guest(BaseModel):
-    nik: int
-    nama: str
-    kota: str
-@app.get("/guests/{nik_id}", response_model=Optional[Guest])
-async def get_guests():
-    data_government = await get_guest_from_web()
+@app.get("/guests/{nik}", response_model=Optional[Government])
+async def get_guests(nik: int):
+    data_government = await get_guest_from_web(nik)
     return data_government
+
+# --------------------
+# Check Data Get Guest
+# --------------------
+@app.get("/penduduk", response_model=List[Guest])
+def get_guests():
+    return guests
 
 # --------------------
 # Post Data Guest
@@ -199,6 +203,54 @@ def delete_guest(nik_id: str):
         guests.pop(index)
         return {"message": "Guest deleted successfully"}
     raise HTTPException(status_code=404, detail="Guest not found")
+
+# --------------------
+# Get Data Kartu Kredit All
+# --------------------
+async def get_kartu_from_web():
+    url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok kartu kredit
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Kartu Kredit.")
+
+class Bank(BaseModel):
+    # tolong check ulang ke padlan
+    nomorkartu: str 
+
+@app.get("/kartu_kredit", response_model=List[Bank])
+async def get_kartu():
+    data_kartu = await get_kartu_from_web()
+    return data_kartu
+
+# --------------------
+# Get Data Kartu Kredit Individual
+# --------------------
+
+@app.get("/kartu_kredit/{kartukredit}", response_model=Optional[Government])
+async def get_guests(nik: int):
+    data_kartu = await get_guest_from_web(kartukredit)
+    return data_kartu
+
+# --------------------
+# Check Data Get Kartu Kredit
+# --------------------
+@app.get("/kartu_kredit", response_model=List[Guest])
+def get_guests():
+    return guests
+
+# --------------------
+# Delete Data Kartu Kredit
+# --------------------
+@app.delete("/kartu_kredit/{kartukredit}")
+# check sama padlan juga yang ini
+def delete_kartu(kartukredit: str):
+    index = get_index(guests, 'CreditCardNumber', kartukredit)
+    if index is not None:
+        guests.pop(index)
+        return {"message": "Kartu Kredit deleted successfully"}
+    raise HTTPException(status_code=404, detail="Kartu Kredit not found")
 
 # CRUD operations for Reservations
 @app.get("/reservations", response_model=List[Reservation])
