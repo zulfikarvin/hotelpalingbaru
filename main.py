@@ -1,483 +1,265 @@
-import requests
-from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import List, Optional
 
 app = FastAPI(
-    title="Objek Wisata",
-    description="API untuk mengelola data objek wisata",
-    docs_url="/",  # Ubah docs_url menjadi "/"
+    title="Bandar Hotel API",
+    description="API untuk mengelola data hotel",
+    docs_url="/",
 )
 
-@app.get("/")
-async def read_root():
-    return {"Data":"Successful"}
+# Define Pydantic models for each table
+class Billing(BaseModel):
+    BillID: str
+    ReservationID: str
+    TotalAmount: int
+    PaymentStatus: str
+    CreditCardNumber: str
 
-# Model untuk Data Wisata
-class Wisata(BaseModel):
-    id_wisata: str
-    nama_objek: str
-    nama_daerah: str
-    kategori: str
-    alamat: str
-    kontak: str
-    harga_tiket: int
+class Guest(BaseModel):
+    NIKID: str
+    Name: str
+    Email: str
+    Phone: str
+    Address: str
+    CreditCardNumber: str
 
-# Dummy data untuk wisata
-data_wisata = [
-    {"id_wisata": "OP01", "nama_objek": "Orchid Forest Cikole", "nama_daerah": "Bandung", "kategori": "Wisata Alam, Wisata Keluarga, Wisata Edukasi", "alamat": "Jl. Tangkuban Perahu Raya No.80E, Cikole, Lembang, Kabupaten Bandung Barat, Jawa Barat 40391, Indonesia", "kontak": "02282325888", "harga_tiket": 40000},
-    {"id_wisata": "OP02", "nama_objek": "Taman Impian Jaya Ancol", "nama_daerah": "Jakarta", "kategori": "Wisata Hiburan, Wisata Keluarga, Wisata Alam, Wisata Edukasi", "alamat": "Jl. Lodan Timur No.7, Ancol, Pademangan, Kota Jakarta Utara, Daerah Khusus Ibukota Jakarta 14430, Indonesia", "kontak": "02129222222", "harga_tiket": 25000},
-    {"id_wisata": "OP03", "nama_objek": "Candi Borobudur", "nama_daerah": "Yogyakarta", "kategori": "Wisata Budaya, Wisata Sejarah, Wisata Religi", "alamat": "Jl. Badrawati No.1, Borobudur, Magelang, Jawa Tengah 56553, Indonesia", "kontak": "0293788210", "harga_tiket": 50000},
-    {"id_wisata": "OP04", "nama_objek": "Uluwatu Temple", "nama_daerah": "Bali", "kategori": "Wisata Budaya, Wisata Religi, Wisata Alam", "alamat": "Pecatu, Kec. Kuta Selatan, Kabupaten Badung, Bali", "kontak": "0361915078", "harga_tiket": 50000},
-    {"id_wisata": "OP05", "nama_objek": "Surabaya North Quay", "nama_daerah": "Surabaya", "kategori": "Wisata Hiburan, Wisata Keluarga, Wisata Kuliner", "alamat": "Jalan Perak Timur, Perak Utara, Pabean Cantian, Kota Surabaya, Jawa Timur 60161", "kontak": "081336101290", "harga_tiket": 50000}
+class Reservation(BaseModel):
+    ReservationID: str
+    NIKID: str
+    RoomID: str
+    CheckInDate: str
+    CheckOutDate: str
+    TotalAmount: int
+    idPenyewaanMobil: str
+
+class Review(BaseModel):
+    ReviewID: str
+    ReservationID: str
+    Rating: int
+    Comment: str
+    InputDate: str
+    TravelType: str
+
+class Room(BaseModel):
+    RoomID: str
+    RoomNumber: str
+    RoomType: str
+    Rate: int
+    Availability: str
+    Insurance: str
+
+# Dummy data
+billings = [
+    {"BillID": "1", "ReservationID": "1", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "1234"},
+    {"BillID": "2", "ReservationID": "2", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "5689"},
+    {"BillID": "3", "ReservationID": "3", "TotalAmount": 4000000, "PaymentStatus": "Paid", "CreditCardNumber": "1357"},
+    {"BillID": "4", "ReservationID": "4", "TotalAmount": 2000000, "PaymentStatus": "Paid", "CreditCardNumber": "2468"},
+    {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "1987"},
 ]
 
-# Endpoint untuk menambahkan data wisata
-@app.post("/wisata")
-def tambah_wisata(wisata: Wisata):
-    data_wisata.append(wisata.dict())
-    return {"message": "Data wisata berhasil ditambahkan."}
+guests = [
+    {"NIKID": "101", "Name": "Ale", "Email": "aleale@gmail.com", "Phone": "08123456789", "Address": "Suite 839 Jl. Hayamwuruk No. 89, Berau, KU 39222", "CreditCardNumber": "1234"},
+    {"NIKID": "102", "Name": "Leo", "Email": "leoamalia@yahoo.co.id", "Phone": "08789012345", "Address": "Jl. MH. Thamrin No. 24, Sumbawa, KB 22844", "CreditCardNumber": "5689"},
+    {"NIKID": "103", "Name": "Lea", "Email": "leavilia.jet@gmail.com", "Phone": "08134567890", "Address": "Jl. Gajahmada No. 50, Jambi, SG 40689", "CreditCardNumber": "1357"},
+    {"NIKID": "104", "Name": "Satoru", "Email": "satorusatria@gmail.com", "Phone": "08778901234", "Address": "Jl. Hayamwuruk No. 30, Bitung, SL 21490", "CreditCardNumber": "2468"},
+    {"NIKID": "105", "Name": "Suguru", "Email": "suguruarianto@student.telkomuniversity.ac.id", "Phone": "08156789012", "Address": "Jl. Gatot Soebroto No. 70, Toba Samosir, JA 83706", "CreditCardNumber": "1987"},
+]
 
-# Endpoint untuk mendapatkan data wisata
-@app.get("/wisata", response_model=List[Wisata])
-def get_wisata():
-    return data_wisata
+reservations = [
+    {"ReservationID": "1", "NIKID": "101", "RoomID": "1", "CheckInDate": "2024-10-27", "CheckOutDate": "2024-10-28", "TotalAmount": 1000000, "idPenyewaanMobil": "001"},
+    {"ReservationID": "2", "NIKID": "102", "RoomID": "2", "CheckInDate": "2024-10-31", "CheckOutDate": "2024-11-01", "TotalAmount": 1000000, "idPenyewaanMobil": "002"},
+    {"ReservationID": "3", "NIKID": "103", "RoomID": "3", "CheckInDate": "2024-11-01", "CheckOutDate": "2024-11-03", "TotalAmount": 4000000, "idPenyewaanMobil": "003"},
+    {"ReservationID": "4", "NIKID": "104", "RoomID": "4", "CheckInDate": "2024-11-01", "CheckOutDate": "2024-11-02", "TotalAmount": 2000000, "idPenyewaanMobil": "004"},
+    {"ReservationID": "5", "NIKID": "105", "RoomID": "5", "CheckInDate": "2024-11-02", "CheckOutDate": "2024-11-04", "TotalAmount": 6000000, "idPenyewaanMobil": "005"},
+]
 
-def get_wisata_index(id_wisata):
-    for index, wisata in enumerate(data_wisata):
-        if wisata['id_wisata'] == id_wisata:
+reviews = [
+    {"ReviewID": "1", "ReservationID": "1", "Rating": 5, "Comment": "Pelayanan yang sangat baik dan kamar nyaman.", "InputDate": "2024-11-28", "TravelType": "Business"},
+    {"ReviewID": "2", "ReservationID": "2", "Rating": 4, "Comment": "Lokasi bagus, tapi kebersihan bisa ditingkatkan.", "InputDate": "2024-11-01", "TravelType": "Others"},
+    {"ReviewID": "3", "ReservationID": "3", "Rating": 5, "Comment": "Saya benar-benar menyukai penginapanku! Semuanya sempurna.", "InputDate": "2024-11-03", "TravelType": "Education"},
+    {"ReviewID": "4", "ReservationID": "4", "Rating": 4, "Comment": "Staf yang ramah dan fasilitas yang bagus.", "InputDate": "2024-11-02", "TravelType": "Holiday"},
+    {"ReviewID": "5", "ReservationID": "5", "Rating": 3, "Comment": "Pengalaman menginap yang lumayan, tapi Wi-Fi tidak stabil.", "InputDate": "2024-11-04", "TravelType": "Business"},
+]
+
+rooms = [
+    {"RoomID": "1", "RoomNumber": "100", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "305"},
+    {"RoomID": "2", "RoomNumber": "101", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "306"},
+    {"RoomID": "3", "RoomNumber": "200", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Empty", "Insurance": "307"},
+    {"RoomID": "4", "RoomNumber": "201", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Maintenance", "Insurance": "308"},
+    {"RoomID": "5", "RoomNumber": "300", "RoomType": "Kings Room", "Rate": 3000000, "Availability": "Occupied", "Insurance": "309"},
+]
+
+# Utility functions to get the index of items
+def get_index(data, key, value):
+    for index, item in enumerate(data):
+        if item[key] == value:
             return index
     return None
 
-# Endpoint untuk detail get id
-@app.get("/wisata/{id_wisata}", response_model=Optional[Wisata])
-def get_wisata_by_id(id_wisata: str):
-    for wisata in data_wisata:
-        if wisata['id_wisata'] == id_wisata:
-            return Wisata(**wisata)
-    return None
+# CRUD operations for Billings
+@app.get("/billings", response_model=List[Billing])
+def get_billings():
+    return billings
 
-# Endpoint untuk memperbarui data wisata dengan hanya memasukkan id_wisata
-@app.put("/wisata/{id_wisata}")
-def update_wisata_by_id(id_wisata: str, wisata_baru: Wisata):
-    index = get_wisata_index(id_wisata)
+@app.get("/billings/{bill_id}", response_model=Optional[Billing])
+def get_billing(bill_id: str):
+    index = get_index(billings, 'BillID', bill_id)
     if index is not None:
-        data_wisata[index] = wisata_baru.dict()
-        return {"message": "Data wisata berhasil diperbarui."}
-    else:
-        raise HTTPException(status_code=404, detail="Data wisata tidak ditemukan.")
+        return billings[index]
+    raise HTTPException(status_code=404, detail="Billing not found")
 
-# Endpoint untuk menghapus data wisata
-@app.delete("/wisata/{id_wisata}")
-def delete_wisata(id_wisata: str):
-    index = get_wisata_index(id_wisata)
+@app.post("/billings")
+def create_billing(billing: Billing):
+    billings.append(billing.dict())
+    return {"message": "Billing created successfully"}
+
+@app.put("/billings/{bill_id}")
+def update_billing(bill_id: str, billing: Billing):
+    index = get_index(billings, 'BillID', bill_id)
     if index is not None:
-        del data_wisata[index]
-        return {"message": "Data wisata berhasil dihapus."}
-    else:
-        raise HTTPException(status_code=404, detail="Data wisata tidak ditemukan.")
-
-
-
-
-
-
-
-
-
-
-# Fungsi untuk mengambil data pajak dari web hosting lain
-def get_data_pajak_from_web():
-    url = "https://api-government.onrender.com/pajak"  # Ganti dengan URL yang sebenarnya
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail="Gagal mengambil data PAJAK dari web hosting.")
-
-# Model untuk Data Pajak
-class Pajak(BaseModel):
-    id_pajak: str
-    jenis_pajak: str
-    tarif_pajak: float
-    besar_pajak: float
-
-# Endpoint untuk mendapatkan data pajak
-@app.get("/pajak", response_model=List[Pajak])
-def get_pajak():
-    data_pajak = get_data_pajak_from_web()
-    return data_pajak
-
-def get_pajak_index(id_pajak):
-    data_pajak = get_data_pajak_from_web()
-    for index, pajak in enumerate(data_pajak):
-        if pajak['id_pajak'] == id_pajak:
-            return index
-    return None
-
-@app.get("/pajak/{id_pajak}", response_model=Optional[Pajak])
-def get_pajak_by_id(id_pajak: str):
-    data_pajak = get_data_pajak_from_web()
-    for pajak in data_pajak:
-        if pajak['id_pajak'] == id_pajak:
-            return Pajak(**pajak)
-    return None
-
-
-
-
-
-
-
-
-
-
-# Fungsi untuk mengambil data tourguide dari web hosting lain
-def get_data_tourGuide_from_web():
-    url = "https://tour-guide-ks4n.onrender.com/tourguide"  # Ganti dengan URL yang sebenarnya
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail="Gagal mengambil data TOUR GUIDE dari web hosting.")
-
-# Model untuk Data Tour Guide
-class TourGuide(BaseModel):
-    id_guider:str
-    nama_guider: str
-    profile: str
-    fee: int
-
-# Endpoint untuk mendapatkan data Tour Guide
-@app.get("/tourGuide", response_model=List[TourGuide])
-def get_tourGuide():
-    data_tourGuide = get_data_tourGuide_from_web()
-    return data_tourGuide
-
-def get_tourGuide_index(id_guider):
-    data_tourGuide = get_data_tourGuide_from_web()
-    for index, tourGuide in enumerate(data_tourGuide):
-        if tourGuide['id_guider'] == id_guider:
-            return index
-    return None
-
-@app.get("/tourGuide/{id_guider}", response_model=Optional[TourGuide])
-def get_tourGuide_by_id(id_guider: str):
-    data_tourGuide = get_data_tourGuide_from_web()
-    for tourGuide in data_tourGuide:
-        if tourGuide['id_guider'] == id_guider:
-            return TourGuide(**tourGuide)
-    return None
-
-
-
-
-
-
-
-
-
-
-# Fungsi untuk mengambil data asuransi dari web hosting lain
-def get_data_asuransi_from_web():
-    url = "https://example.com/api/asuransi"  # Ganti dengan URL yang sebenarnya
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail="Gagal mengambil data ASURANSI dari web hosting.")
-
-# Model untuk Data Asuransi
-class Asuransi(BaseModel):
-    id_asuransi: str
-    nama_asuransi: str
-    deskripsi: str
-    premi: float
-
-def get_asuransi_index(id_asuransi):
-    data_asuransi = get_data_asuransi_from_web()
-    for index, asuransi in enumerate(data_asuransi):
-        if asuransi['id_asuransi'] == id_asuransi:
-            return index
-    return None
-
-@app.get("/asuransi", response_model=List[Asuransi])
-def get_asuransi():
-    data_asuransi = get_data_asuransi_from_web()
-    return data_asuransi
-
-@app.get("/asuransi/{id_asuransi}", response_model=Optional[Asuransi])
-def get_asuransi_by_id(id_asuransi: str):
-    data_asuransi = get_data_asuransi_from_web()
-    for asuransi in data_asuransi:
-        if asuransi['id_asuransi'] == id_asuransi:
-            return Asuransi(**asuransi)
-    return None
-
-
-
-
-
-
-
-
-
-
-# Fungsi untuk mengambil data hotel dari web hosting lain
-def get_data_hotel_from_web():
-    url = "https://example.com/api/hotel"  # Ganti dengan URL yang sebenarnya
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail="Gagal mengambil data HOTEL dari web hosting.")
-
-# Model untuk Data Hotel
-class Hotel(BaseModel):
-    id_hotel: str
-    nama_hotel: str
-    alamat: str
-    rating: float
-    harga_per_malam: int
-
-def get_hotel_index(id_hotel):
-    data_hotel = get_data_hotel_from_web()
-    for index, hotel in enumerate(data_hotel):
-        if hotel['id_hotel'] == id_hotel:
-            return index
-    return None
-
-@app.get("/hotel", response_model=List[Hotel])
-def get_hotel():
-    data_hotel = get_data_hotel_from_web()
-    return data_hotel
-
-@app.get("/hotel/{id_hotel}", response_model=Optional[Hotel])
-def get_hotel_by_id(id_hotel: str):
-    data_hotel = get_data_hotel_from_web()
-    for hotel in data_hotel:
-        if hotel['id_hotel'] == id_hotel:
-            return Hotel(**hotel)
-    return None
-
-
-
-
-
-
-
-
-
-
-# Fungsi untuk mengambil data bank dari web hosting lain
-def get_data_bank_from_web():
-    url = "https://example.com/api/bank"  # Ganti dengan URL yang sebenarnya
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(status_code=response.status_code, detail="Gagal mengambil data BANK dari web hosting.")
-
-# Model untuk Data Bank
-class Bank(BaseModel):
-    id_bank: str
-    nama_bank: str
-    alamat: str
-    kode_bank: str
-    jenis_bank: str
-
-def get_bank_index(id_bank):
-    data_bank = get_data_bank_from_web()
-    for index, bank in enumerate(data_bank):
-        if bank['id_bank'] == id_bank:
-            return index
-    return None
-
-@app.get("/bank", response_model=List[Bank])
-def get_bank():
-    data_bank = get_data_bank_from_web()
-    return data_bank
-
-@app.get("/bank/{id_bank}", response_model=Optional[Bank])
-def get_bank_by_id(id_bank: str):
-    data_bank = get_data_bank_from_web()
-    for bank in data_bank:
-        if bank['id_bank'] == id_bank:
-            return Bank(**bank)
-    return None
-
-
-
-
-
-
-
-
-
-
-
-def combine_wisata_pajak():
-    wisata_data = get_wisata()
-    pajak_data = get_pajak()
-
-    combined_data = []
-    for wisata in wisata_data:
-        for pajak in pajak_data:
-            combined_obj = {
-                "id_wisata": wisata['id_wisata'],
-                "nama_objek": wisata['nama_objek'],
-                "pajak": pajak
-            }
-            combined_data.append(combined_obj)
-
-    return combined_data
-
-class WisataPajak(BaseModel):
-    id_wisata: str
-    nama_objek: str
-    pajak: Pajak
-
-@app.get("/wisataPajak", response_model=List[WisataPajak])
-def get_combined_data():
-    combined_data = combine_wisata_pajak()
-    return combined_data
-
-
-
-
-
-
-
-
-
-
-def combine_wisata_tour_guide():
-    wisata_data = get_wisata()
-    tour_guide_data = get_tourGuide()
-
-    combined_data = []
-    for wisata in wisata_data:
-        for tour_guide in tour_guide_data:
-            combined_obj = {
-                "id_wisata": wisata['id_wisata'],
-                "nama_objek": wisata['nama_objek'],
-                "tour_guide": tour_guide
-            }
-            combined_data.append(combined_obj)
-
-    return combined_data
-
-class WisataTourGuide(BaseModel):
-    id_wisata: str
-    nama_objek: str
-    tour_guide: TourGuide
-
-@app.get("/wisataTourGuide", response_model=List[WisataTourGuide])
-def get_combined_data():
-    combined_data = combine_wisata_tour_guide()
-    return combined_data
-
-
-
-
-
-
-
-
-
-
-def combine_wisata_asuransi():
-    wisata_data = get_wisata()
-    asuransi_data = get_asuransi()
-
-    combined_data = []
-    for wisata in wisata_data:
-        for asuransi in asuransi_data:
-            combined_obj = {
-                "id_wisata": wisata['id_wisata'],
-                "nama_objek": wisata['nama_objek'],
-                "asuransi": asuransi
-            }
-            combined_data.append(combined_obj)
-
-    return combined_data
-
-class WisataAsuransi(BaseModel):
-    id_wisata: str
-    nama_objek: str
-    asuransi: Asuransi
-
-@app.get("/wisataAsuransi", response_model=List[WisataAsuransi])
-def get_combined_data():
-    combined_data = combine_wisata_asuransi()
-    return combined_data
-
-
-
-
-
-
-
-
-
-
-def combine_wisata_hotel():
-    wisata_data = get_wisata()
-    hotel_data = get_hotel()
-
-    combined_data = []
-    for wisata in wisata_data:
-        for hotel in hotel_data:
-            combined_obj = {
-                "id_wisata": wisata['id_wisata'],
-                "nama_objek": wisata['nama_objek'],
-                "hotel": hotel
-            }
-            combined_data.append(combined_obj)
-
-    return combined_data
-
-class WisataHotel(BaseModel):
-    id_wisata: str
-    nama_objek: str
-    hotel: Hotel
-
-@app.get("/wisataHotel", response_model=List[WisataHotel])
-def get_combined_data():
-    combined_data = combine_wisata_hotel()
-    return combined_data
-
-
-
-
-
-
-
-
-
-
-def combine_wisata_bank():
-    wisata_data = get_wisata()
-    bank_data = get_bank()
-
-    combined_data = []
-    for wisata in wisata_data:
-        for bank in bank_data:
-            combined_obj = {
-                "id_wisata": wisata['id_wisata'],
-                "nama_objek": wisata['nama_objek'],
-                "bank": bank
-            }
-            combined_data.append(combined_obj)
-
-    return combined_data
-
-class WisataBank(BaseModel):
-    id_wisata: str
-    nama_objek: str
-    bank: Bank
-
-@app.get("/wisataBank", response_model=List[WisataBank])
-def get_combined_data():
-    combined_data = combine_wisata_bank()
-    return combined_data
+        billings[index] = billing.dict()
+        return {"message": "Billing updated successfully"}
+    raise HTTPException(status_code=404, detail="Billing not found")
+
+@app.delete("/billings/{bill_id}")
+def delete_billing(bill_id: str):
+    index = get_index(billings, 'BillID', bill_id)
+    if index is not None:
+        billings.pop(index)
+        return {"message": "Billing deleted successfully"}
+    raise HTTPException(status_code=404, detail="Billing not found")
+
+# Repeat similar CRUD operations for Guests, Reservations, Reviews, and Rooms
+
+# CRUD operations for Guests
+@app.get("/guests", response_model=List[Guest])
+def get_guests():
+    return guests
+
+@app.get("/guests/{nik_id}", response_model=Optional[Guest])
+def get_guest(nik_id: str):
+    index = get_index(guests, 'NIKID', nik_id)
+    if index is not None:
+        return guests[index]
+    raise HTTPException(status_code=404, detail="Guest not found")
+
+@app.post("/guests")
+def create_guest(guest: Guest):
+    guests.append(guest.dict())
+    return {"message": "Guest created successfully"}
+
+@app.put("/guests/{nik_id}")
+def update_guest(nik_id: str, guest: Guest):
+    index = get_index(guests, 'NIKID', nik_id)
+    if index is not None:
+        guests[index] = guest.dict()
+        return {"message": "Guest updated successfully"}
+    raise HTTPException(status_code=404, detail="Guest not found")
+
+@app.delete("/guests/{nik_id}")
+def delete_guest(nik_id: str):
+    index = get_index(guests, 'NIKID', nik_id)
+    if index is not None:
+        guests.pop(index)
+        return {"message": "Guest deleted successfully"}
+    raise HTTPException(status_code=404, detail="Guest not found")
+
+# CRUD operations for Reservations
+@app.get("/reservations", response_model=List[Reservation])
+def get_reservations():
+    return reservations
+
+@app.get("/reservations/{reservation_id}", response_model=Optional[Reservation])
+def get_reservation(reservation_id: str):
+    index = get_index(reservations, 'ReservationID', reservation_id)
+    if index is not None:
+        return reservations[index]
+    raise HTTPException(status_code=404, detail="Reservation not found")
+
+@app.post("/reservations")
+def create_reservation(reservation: Reservation):
+    reservations.append(reservation.dict())
+    return {"message": "Reservation created successfully"}
+
+@app.put("/reservations/{reservation_id}")
+def update_reservation(reservation_id: str, reservation: Reservation):
+    index = get_index(reservations, 'ReservationID', reservation_id)
+    if index is not None:
+        reservations[index] = reservation.dict()
+        return {"message": "Reservation updated successfully"}
+    raise HTTPException(status_code=404, detail="Reservation not found")
+
+@app.delete("/reservations/{reservation_id}")
+def delete_reservation(reservation_id: str):
+    index = get_index(reservations, 'ReservationID', reservation_id)
+    if index is not None:
+        reservations.pop(index)
+        return {"message": "Reservation deleted successfully"}
+    raise HTTPException(status_code=404, detail="Reservation not found")
+
+# CRUD operations for Reviews
+@app.get("/reviews", response_model=List[Review])
+def get_reviews():
+    return reviews
+
+@app.get("/reviews/{review_id}", response_model=Optional[Review])
+def get_review(review_id: str):
+    index = get_index(reviews, 'ReviewID', review_id)
+    if index is not None:
+        return reviews[index]
+    raise HTTPException(status_code=404, detail="Review not found")
+
+@app.post("/reviews")
+def create_review(review: Review):
+    reviews.append(review.dict())
+    return {"message": "Review created successfully"}
+
+@app.put("/reviews/{review_id}")
+def update_review(review_id: str, review: Review):
+    index = get_index(reviews, 'ReviewID', review_id)
+    if index is not None:
+        reviews[index] = review.dict()
+        return {"message": "Review updated successfully"}
+    raise HTTPException(status_code=404, detail="Review not found")
+
+@app.delete("/reviews/{review_id}")
+def delete_review(review_id: str):
+    index = get_index(reviews, 'ReviewID', review_id)
+    if index is not None:
+        reviews.pop(index)
+        return {"message": "Review deleted successfully"}
+    raise HTTPException(status_code=404, detail="Review not found")
+
+# CRUD operations for Rooms
+@app.get("/rooms", response_model=List[Room])
+def get_rooms():
+    return rooms
+
+@app.get("/rooms/{room_id}", response_model=Optional[Room])
+def get_room(room_id: str):
+    index = get_index(rooms, 'RoomID', room_id)
+    if index is not None:
+        return rooms[index]
+    raise HTTPException(status_code=404, detail="Room not found")
+
+@app.post("/rooms")
+def create_room(room: Room):
+    rooms.append(room.dict())
+    return {"message": "Room created successfully"}
+
+@app.put("/rooms/{room_id}")
+def update_room(room_id: str, room: Room):
+    index = get_index(rooms, 'RoomID', room_id)
+    if index is not None:
+        rooms[index] = room.dict()
+        return {"message": "Room updated successfully"}
+    raise HTTPException(status_code=404, detail="Room not found")
+
+@app.delete("/rooms/{room_id}")
+def delete_room(room_id: str):
+    index = get_index(rooms, 'RoomID', room_id)
+    if index is not None:
+        rooms.pop(index)
+        return {"message": "Room deleted successfully"}
+    raise HTTPException(status_code=404, detail="Room not found")
