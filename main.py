@@ -9,16 +9,6 @@ app = FastAPI(
     docs_url="/",
 )
 
-# Define Pydantic models for each table
-# class Billing(BaseModel):
-#     BillID: str
-#     ReservationID: str
-#     TotalAmount: int
-#     PaymentStatus: str
-#     CreditCardNumber: str
-
-
-
 class Reservation(BaseModel):
     ReservationID: str
     NIKID: str
@@ -48,13 +38,13 @@ class Room(BaseModel):
     Insurance: str
 
 # Dummy data
-# billings = [
-#     {"BillID": "1", "ReservationID": "1", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "1234"},
-#     {"BillID": "2", "ReservationID": "2", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "5689"},
-#     {"BillID": "3", "ReservationID": "3", "TotalAmount": 4000000, "PaymentStatus": "Paid", "CreditCardNumber": "1357"},
-#     {"BillID": "4", "ReservationID": "4", "TotalAmount": 2000000, "PaymentStatus": "Paid", "CreditCardNumber": "2468"},
-#     {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "1987"},
-# ]
+billings = [
+    {"BillID": "1", "ReservationID": "1", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "1234"},
+    {"BillID": "2", "ReservationID": "2", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "5689"},
+    {"BillID": "3", "ReservationID": "3", "TotalAmount": 4000000, "PaymentStatus": "Paid", "CreditCardNumber": "1357"},
+    {"BillID": "4", "ReservationID": "4", "TotalAmount": 2000000, "PaymentStatus": "Paid", "CreditCardNumber": "2468"},
+    {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "1987"},
+]
 
 guests = [
     {"NIKID": "101", "Name": "Ale", "Email": "aleale@gmail.com", "Phone": "08123456789", "Address": "Suite 839 Jl. Hayamwuruk No. 89, Berau, KU 39222", "CreditCardNumber": "1234"},
@@ -96,34 +86,33 @@ def get_index(data, key, value):
     return None
 
 # CRUD operations for Billings
-billings = []
-class Billing(BaseModel):
-    id: int
-    jenis: str
-    name: str
-    total: str
-    saldo: str
 
 async def get_bank_from_web():
     url = "https://jumantaradev.my.id/api/hotel"  # endpoint kelompok bank
     response = requests.get(url)
     if response.status_code == 200:
-        return response.json()
+        data = response.json()
+        return data['data']['data']
     else:
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch data from the bank API.")
 
+class Billing(BaseModel):
+    id: int
+    jenis: str
+    name: str
+    total: str
+
 @app.get("/billings", response_model=List[Billing])
 async def get_billings():
-    data_bank = await get_bank_from_web()
-    billings = [Billing(**item) for item in data_bank]  # Convert fetched data to Billing objects
+    billings = await get_bank_from_web()
     return billings
 
-@app.get("/billings/{bill_id}", response_model=Billing)
+@app.get("/billings/{bill_id}", response_model=Optional[Billing])
 async def get_billing(bill_id: int):
-    billings = await get_billings()  # Fetch billings
+    billings = await get_bank_from_web()  # Fetch billings
     for billing in billings:
-        if billing.id == bill_id:
-            return billing
+        if billing['id'] == bill_id:
+            return Billing(**billing)
     raise HTTPException(status_code=404, detail="Billing not found")
 
 @app.post("/billings", response_model=Billing)
@@ -138,8 +127,21 @@ async def update_billing(bill_id: int, billing: Billing):
 
 @app.delete("/billings/{bill_id}")
 async def delete_billing(bill_id: int):
-    # Logic to delete billing with given bill_id
-    return {"message": "Billing deleted successfully"}
+    billings = await get_bank_from_web()  # Fetch billings
+    for billing in billings:
+        if billing['id'] == bill_id:
+            billings.pop(billing)
+            return {"message": "Billing deleted successfully"}
+    raise HTTPException(status_code=404, detail="Billing not found")
+
+# @app.delete("/billings/{bill_id}")
+# async def delete_billing(bill_id: int):
+#     global billings
+#     for index, billing in enumerate(billings):
+#         if billing['id'] == bill_id:
+#             billings.pop(index)
+#             return {"message": "Billing deleted successfully"}
+#     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
 # --------------------
