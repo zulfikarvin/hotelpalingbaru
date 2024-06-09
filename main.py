@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
+import requests
 
 app = FastAPI(
     title="Bandar Hotel API",
@@ -16,13 +17,7 @@ app = FastAPI(
 #     PaymentStatus: str
 #     CreditCardNumber: str
 
-class Guest(BaseModel):
-    NIKID: str
-    Name: str
-    Email: str
-    Phone: str
-    Address: str
-    CreditCardNumber: str
+
 
 class Reservation(BaseModel):
     ReservationID: str
@@ -41,6 +36,9 @@ class Review(BaseModel):
     InputDate: str
     TravelType: str
 
+class tourguide(BaseModel):
+    TravelType : str    
+
 class Room(BaseModel):
     RoomID: str
     RoomNumber: str
@@ -50,39 +48,45 @@ class Room(BaseModel):
     Insurance: str
 
 # Dummy data
-# billings = [
-#     {"BillID": "1", "ReservationID": "1", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "1234"},
-#     {"BillID": "2", "ReservationID": "2", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "5689"},
-#     {"BillID": "3", "ReservationID": "3", "TotalAmount": 4000000, "PaymentStatus": "Paid", "CreditCardNumber": "1357"},
-#     {"BillID": "4", "ReservationID": "4", "TotalAmount": 2000000, "PaymentStatus": "Paid", "CreditCardNumber": "2468"},
-#     {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "1987"},
-# ]
+billings = [
+    {"BillID": "1", "ReservationID": "1", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "1234"},
+    {"BillID": "2", "ReservationID": "2", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "5689"},
+    {"BillID": "3", "ReservationID": "3", "TotalAmount": 4000000, "PaymentStatus": "Paid", "CreditCardNumber": "1357"},
+    {"BillID": "4", "ReservationID": "4", "TotalAmount": 2000000, "PaymentStatus": "Paid", "CreditCardNumber": "2468"},
+    {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "1987"},
+]
 
-guests = []
+guests = [
+    {"NIKID": "101", "Name": "Ale", "Email": "aleale@gmail.com", "Phone": "08123456789", "Address": "Suite 839 Jl. Hayamwuruk No. 89, Berau, KU 39222", "CreditCardNumber": "1234"},
+    {"NIKID": "102", "Name": "Leo", "Email": "leoamalia@yahoo.co.id", "Phone": "08789012345", "Address": "Jl. MH. Thamrin No. 24, Sumbawa, KB 22844", "CreditCardNumber": "5689"},
+    {"NIKID": "103", "Name": "Lea", "Email": "leavilia.jet@gmail.com", "Phone": "08134567890", "Address": "Jl. Gajahmada No. 50, Jambi, SG 40689", "CreditCardNumber": "1357"},
+    {"NIKID": "104", "Name": "Satoru", "Email": "satorusatria@gmail.com", "Phone": "08778901234", "Address": "Jl. Hayamwuruk No. 30, Bitung, SL 21490", "CreditCardNumber": "2468"},
+    {"NIKID": "105", "Name": "Suguru", "Email": "suguruarianto@student.telkomuniversity.ac.id", "Phone": "08156789012", "Address": "Jl. Gatot Soebroto No. 70, Toba Samosir, JA 83706", "CreditCardNumber": "1987"},
+]
 
-# reservations = [
-#     {"ReservationID": "1", "NIKID": "101", "RoomID": "1", "CheckInDate": "2024-10-27", "CheckOutDate": "2024-10-28", "TotalAmount": 1000000, "idPenyewaanMobil": "001"},
-#     {"ReservationID": "2", "NIKID": "102", "RoomID": "2", "CheckInDate": "2024-10-31", "CheckOutDate": "2024-11-01", "TotalAmount": 1000000, "idPenyewaanMobil": "002"},
-#     {"ReservationID": "3", "NIKID": "103", "RoomID": "3", "CheckInDate": "2024-11-01", "CheckOutDate": "2024-11-03", "TotalAmount": 4000000, "idPenyewaanMobil": "003"},
-#     {"ReservationID": "4", "NIKID": "104", "RoomID": "4", "CheckInDate": "2024-11-01", "CheckOutDate": "2024-11-02", "TotalAmount": 2000000, "idPenyewaanMobil": "004"},
-#     {"ReservationID": "5", "NIKID": "105", "RoomID": "5", "CheckInDate": "2024-11-02", "CheckOutDate": "2024-11-04", "TotalAmount": 6000000, "idPenyewaanMobil": "005"},
-# ]
+reservations = [
+    {"ReservationID": "1", "NIKID": "101", "RoomID": "1", "CheckInDate": "2024-10-27", "CheckOutDate": "2024-10-28", "TotalAmount": 1000000, "idPenyewaanMobil": "001"},
+    {"ReservationID": "2", "NIKID": "102", "RoomID": "2", "CheckInDate": "2024-10-31", "CheckOutDate": "2024-11-01", "TotalAmount": 1000000, "idPenyewaanMobil": "002"},
+    {"ReservationID": "3", "NIKID": "103", "RoomID": "3", "CheckInDate": "2024-11-01", "CheckOutDate": "2024-11-03", "TotalAmount": 4000000, "idPenyewaanMobil": "003"},
+    {"ReservationID": "4", "NIKID": "104", "RoomID": "4", "CheckInDate": "2024-11-01", "CheckOutDate": "2024-11-02", "TotalAmount": 2000000, "idPenyewaanMobil": "004"},
+    {"ReservationID": "5", "NIKID": "105", "RoomID": "5", "CheckInDate": "2024-11-02", "CheckOutDate": "2024-11-04", "TotalAmount": 6000000, "idPenyewaanMobil": "005"},
+]
 
-# reviews = [
-#     {"ReviewID": "1", "ReservationID": "1", "Rating": 5, "Comment": "Pelayanan yang sangat baik dan kamar nyaman.", "InputDate": "2024-11-28", "TravelType": "Business"},
-#     {"ReviewID": "2", "ReservationID": "2", "Rating": 4, "Comment": "Lokasi bagus, tapi kebersihan bisa ditingkatkan.", "InputDate": "2024-11-01", "TravelType": "Others"},
-#     {"ReviewID": "3", "ReservationID": "3", "Rating": 5, "Comment": "Saya benar-benar menyukai penginapanku! Semuanya sempurna.", "InputDate": "2024-11-03", "TravelType": "Education"},
-#     {"ReviewID": "4", "ReservationID": "4", "Rating": 4, "Comment": "Staf yang ramah dan fasilitas yang bagus.", "InputDate": "2024-11-02", "TravelType": "Holiday"},
-#     {"ReviewID": "5", "ReservationID": "5", "Rating": 3, "Comment": "Pengalaman menginap yang lumayan, tapi Wi-Fi tidak stabil.", "InputDate": "2024-11-04", "TravelType": "Business"},
-# ]
+reviews = [
+    {"ReviewID": "1", "ReservationID": "1", "Rating": 5, "Comment": "Pelayanan yang sangat baik dan kamar nyaman.", "InputDate": "2024-11-28", "TravelType": "Business"},
+    {"ReviewID": "2", "ReservationID": "2", "Rating": 4, "Comment": "Lokasi bagus, tapi kebersihan bisa ditingkatkan.", "InputDate": "2024-11-01", "TravelType": "Others"},
+    {"ReviewID": "3", "ReservationID": "3", "Rating": 5, "Comment": "Saya benar-benar menyukai penginapanku! Semuanya sempurna.", "InputDate": "2024-11-03", "TravelType": "Education"},
+    {"ReviewID": "4", "ReservationID": "4", "Rating": 4, "Comment": "Staf yang ramah dan fasilitas yang bagus.", "InputDate": "2024-11-02", "TravelType": "Holiday"},
+    {"ReviewID": "5", "ReservationID": "5", "Rating": 3, "Comment": "Pengalaman menginap yang lumayan, tapi Wi-Fi tidak stabil.", "InputDate": "2024-11-04", "TravelType": "Business"},
+]
 
-# rooms = [
-#     {"RoomID": "1", "RoomNumber": "100", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "305"},
-#     {"RoomID": "2", "RoomNumber": "101", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "306"},
-#     {"RoomID": "3", "RoomNumber": "200", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Empty", "Insurance": "307"},
-#     {"RoomID": "4", "RoomNumber": "201", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Maintenance", "Insurance": "308"},
-#     {"RoomID": "5", "RoomNumber": "300", "RoomType": "Kings Room", "Rate": 3000000, "Availability": "Occupied", "Insurance": "309"},
-# ]
+rooms = [
+    {"RoomID": "1", "RoomNumber": "100", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "305"},
+    {"RoomID": "2", "RoomNumber": "101", "RoomType": "Standard Room", "Rate": 1000000, "Availability": "Occupied", "Insurance": "306"},
+    {"RoomID": "3", "RoomNumber": "200", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Empty", "Insurance": "307"},
+    {"RoomID": "4", "RoomNumber": "201", "RoomType": "Superior Room", "Rate": 2000000, "Availability": "Maintenance", "Insurance": "308"},
+    {"RoomID": "5", "RoomNumber": "300", "RoomType": "Kings Room", "Rate": 3000000, "Availability": "Occupied", "Insurance": "309"},
+]
 
 # Utility functions to get the index of items
 def get_index(data, key, value):
@@ -148,23 +152,23 @@ async def delete_billing(bill_id: int):
     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
-def get_index(data_list, key, value):
-    for index, item in enumerate(data_list):
-        if item[key] == value:
-            return index
-    return None
-
-def fetch_guest_data(nik_id: str) -> Optional[Guest]:
-    url = f"https://api-government.onrender.com/penduduk/{nik_id}"
+async def get_guest_from_web():
+    url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok tour guide
     response = requests.get(url)
     if response.status_code == 200:
-        data = response.json()
-        return Guest(**data)
-    return None
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
 
-@app.get("/guests", response_model=List[Guest])
-def get_guests():
-    return guests
+class Guest(BaseModel):
+    nik: int
+    nama: str
+    kota: str
+
+@app.get("/guest", response_model=List[Guest])
+async def get_guests():
+    data_government = await get_guest_from_web()
+    return data_government
 
 @app.get("/guests/{nik_id}", response_model=Guest)
 def get_guest(nik_id: str):
@@ -231,6 +235,7 @@ def delete_reservation(reservation_id: str):
 @app.get("/reviews", response_model=List[Review])
 def get_reviews():
     return reviews
+    
 
 @app.get("/reviews/{review_id}", response_model=Optional[Review])
 def get_review(review_id: str):
@@ -259,6 +264,11 @@ def delete_review(review_id: str):
         reviews.pop(index)
         return {"message": "Review deleted successfully"}
     raise HTTPException(status_code=404, detail="Review not found")
+
+@app.get('/tourguide',response_model=List[tourguide])
+async def get_tourguide():
+    data_tourguide = await get_tourguide_from_web()
+    return data_tourguide
 
 # CRUD operations for Rooms
 @app.get("/rooms", response_model=List[Room])
@@ -292,3 +302,17 @@ def delete_room(room_id: str):
         rooms.pop(index)
         return {"message": "Room deleted successfully"}
     raise HTTPException(status_code=404, detail="Room not found")
+
+# Endpoint untuk mengambil data tour guide
+@app.get("/tourguide")
+def get_tourguide():
+    url = "https://tour-guide-ks4n.onrender.com/tourguide/#/"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=response.status_code, detail="Gagal mengambil Tour Guide.")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
