@@ -1,0 +1,13 @@
+step 1 install fastAPI
+====================================
+pip install fastapi
+pip install "uvicorn[standard]"
+
+step 2 install pydantic
+=====================================
+pip install pydantic
+pip show pydantic
+
+step 3 run uvicorn
+=====================================
+python -m uvicorn main:app --reload
