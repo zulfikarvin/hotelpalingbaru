@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
+from fastapi import Path
 import requests
 
 app = FastAPI(
@@ -162,10 +163,24 @@ async def get_guests():
 # Get Data Guest Individual
 # --------------------
 
-@app.get("/guests/{nik}", response_model=Optional[Government])
-async def get_guests(nik: int):
-    data_government = await get_guest_from_web(nik)
-    return data_government
+# @app.get("/guests/{nik}", response_model=Optional[Government])
+# async def get_guests(nik: int):
+#     data_government = await get_guest_from_web(nik)
+#     return data_government
+
+# @app.get("/guests/{nik}", response_model=Optional[Review])
+# def get_review(nik: int = Path(..., title="Review ID", description="The ID of the review to retrieve")):
+#     index = get_index(guests, 'NIKID', nik)
+#     if index is not None:
+#         return reviews[index]
+#     raise HTTPException(status_code=404, detail="Guest not found")
+
+@app.get("/guests/{nik}", response_model=Optional[guests])
+def get_review(nik: int = Path(..., title="Guest ID", description="The ID of the guest to retrieve")):
+    index = get_index(guests, 'NIKID', nik)
+    if index is not None:
+        return guests[index]
+    raise HTTPException(status_code=404, detail="Guest not found")
 
 # --------------------
 # Check Data Get Guest
@@ -185,9 +200,9 @@ def create_guest(guest: Guest):
 # --------------------
 # Put Data Guest
 # --------------------
-@app.put("/guests/{nik_id}")
-def update_guest(nik_id: str, guest: Guest):
-    index = get_index(guests, 'NIKID', nik_id)
+@app.put("/guests/{nik}")
+def update_guest(nik: str, guest: Guest):
+    index = get_index(guests, 'NIKID', nik)
     if index is not None:
         guests[index] = guest.dict()
         return {"message": "Guest updated successfully"}
@@ -196,9 +211,9 @@ def update_guest(nik_id: str, guest: Guest):
 # --------------------
 # Delete Data Guest
 # --------------------
-@app.delete("/guests/{nik_id}")
-def delete_guest(nik_id: str):
-    index = get_index(guests, 'NIKID', nik_id)
+@app.delete("/guests/{nik}")
+def delete_guest(nik: str):
+    index = get_index(guests, 'NIKID', nik)
     if index is not None:
         guests.pop(index)
         return {"message": "Guest deleted successfully"}
@@ -208,7 +223,7 @@ def delete_guest(nik_id: str):
 # Get Data Kartu Kredit All
 # --------------------
 async def get_kartu_from_web():
-    url = "https://api-government.onrender.com/penduduk"  #endpoint kelompok kartu kredit
+    url = " "  #endpoint kelompok kartu kredit
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
@@ -251,6 +266,9 @@ def delete_kartu(kartukredit: str):
         guests.pop(index)
         return {"message": "Kartu Kredit deleted successfully"}
     raise HTTPException(status_code=404, detail="Kartu Kredit not found")
+
+
+
 
 # CRUD operations for Reservations
 @app.get("/reservations", response_model=List[Reservation])
