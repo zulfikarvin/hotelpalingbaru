@@ -135,11 +135,11 @@ async def get_guest_from_web():
         raise HTTPException(status_code=response.status_code, detail = "Gagal mengambil Tour Guide.")
 
 class Guest(BaseModel):
-    nik: str
+    nik: int
     nama: str
     kota: str
 
-@app.get("/guests", response_model=List[Guest])
+@app.get("/guest", response_model=List[Guest])
 async def get_guests():
     data_government = await get_guest_from_web()
     return data_government
