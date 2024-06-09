@@ -130,8 +130,6 @@ def delete_billing(bill_id: str):
         return {"message": "Billing deleted successfully"}
     raise HTTPException(status_code=404, detail="Billing not found")
 
-# Repeat similar CRUD operations for Guests, Reservations, Reviews, and Rooms
-
 # CRUD operations for Guests
 @app.get("/guests", response_model=List[Guest])
 def get_guests():
