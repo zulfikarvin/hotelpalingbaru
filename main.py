@@ -205,14 +205,12 @@ def delete_reservation(reservation_id: str):
 def get_reviews():
     return reviews
     
-
 @app.get("/reviews/{review_id}")
 def get_review(review_id: str):
-    index = get_index(review_id)
+    index = get_index(reviews, 'ReviewID', review_id)
     if index is not None:
         return reviews[index]
-    else:
-        raise HTTPException(status_code=404, detail="Review tidak dapat ditemukan.")
+    raise HTTPException(status_code=404, detail="Review not found")
 
 
 @app.post("/reviews")
