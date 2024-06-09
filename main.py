@@ -206,12 +206,14 @@ def get_reviews():
     return reviews
     
 
-@app.get("/reviews/{review_id}", response_model=Optional[Review])
+@app.get("/reviews/{review_id}")
 def get_review(review_id: str):
-    index = get_index(reviews, 'ReviewID', review_id)
+    index = get_index(review_id)
     if index is not None:
         return reviews[index]
-    raise HTTPException(status_code=404, detail="Review not found")
+    else:
+        raise HTTPException(status_code=404, detail="Review tidak dapat ditemukan.")
+
 
 @app.post("/reviews")
 def create_review(review: Review):
@@ -223,8 +225,10 @@ def update_review(review_id: str, review: Review):
     index = get_index(reviews, 'ReviewID', review_id)
     if index is not None:
         reviews[index] = review.dict()
-        return {"message": "Review updated successfully"}
-    raise HTTPException(status_code=404, detail="Review not found")
+        return {"message": "Review berhasil diperbarui"}
+    else:
+        raise HTTPException(status_code=404, detail="Review tidak dapat ditemukan")
+
 
 @app.delete("/reviews/{review_id}")
 def delete_review(review_id: str):
@@ -232,7 +236,7 @@ def delete_review(review_id: str):
     if index is not None:
         reviews.pop(index)
         return {"message": "Review deleted successfully"}
-    raise HTTPException(status_code=404, detail="Review not found")
+    raise HTTPException(status_code=404, detail="Review not found")
 
 @app.get('/tourguide',response_model=List[tourguide])
 async def get_tourguide():
