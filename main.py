@@ -42,10 +42,10 @@ class Review(BaseModel):
     Rating: int
     Comment: str
     InputDate: str
-    TravelType: str
+    travelType: str
 
 class TourGuide(BaseModel):
-    TravelType: str    
+    travelType: str    
 
 class Room(BaseModel):
     RoomID: str
