@@ -81,11 +81,11 @@ reservations = [
 ]
 
 reviews = [
-    {"ReviewID": "1", "ReservationID": "1", "Rating": 5, "Comment": "Pelayanan yang sangat baik dan kamar nyaman.", "InputDate": "2024-11-28", "TravelType": "Business"},
-    {"ReviewID": "2", "ReservationID": "2", "Rating": 4, "Comment": "Lokasi bagus, tapi kebersihan bisa ditingkatkan.", "InputDate": "2024-11-01", "TravelType": "Others"},
-    {"ReviewID": "3", "ReservationID": "3", "Rating": 5, "Comment": "Saya benar-benar menyukai penginapanku! Semuanya sempurna.", "InputDate": "2024-11-03", "TravelType": "Education"},
-    {"ReviewID": "4", "ReservationID": "4", "Rating": 4, "Comment": "Staf yang ramah dan fasilitas yang bagus.", "InputDate": "2024-11-02", "TravelType": "Holiday"},
-    {"ReviewID": "5", "ReservationID": "5", "Rating": 3, "Comment": "Pengalaman menginap yang lumayan, tapi Wi-Fi tidak stabil.", "InputDate": "2024-11-04", "TravelType": "Business"},
+    {"ReviewID": "1", "ReservationID": "1", "Rating": 5, "Comment": "Pelayanan yang sangat baik dan kamar nyaman.", "InputDate": "2024-11-28", "travelType": "Business"},
+    {"ReviewID": "2", "ReservationID": "2", "Rating": 4, "Comment": "Lokasi bagus, tapi kebersihan bisa ditingkatkan.", "InputDate": "2024-11-01", "travelType": "Others"},
+    {"ReviewID": "3", "ReservationID": "3", "Rating": 5, "Comment": "Saya benar-benar menyukai penginapanku! Semuanya sempurna.", "InputDate": "2024-11-03", "travelType": "Education"},
+    {"ReviewID": "4", "ReservationID": "4", "Rating": 4, "Comment": "Staf yang ramah dan fasilitas yang bagus.", "InputDate": "2024-11-02", "travelType": "Holiday"},
+    {"ReviewID": "5", "ReservationID": "5", "Rating": 3, "Comment": "Pengalaman menginap yang lumayan, tapi Wi-Fi tidak stabil.", "InputDate": "2024-11-04", "travelType": "Business"},
 ]
 
 rooms = [
@@ -461,7 +461,7 @@ def delete_room(room_id: str):
 # Endpoint untuk mengambil data tour guide
 @app.get("/tourguide")
 def get_tourguide():
-    url = "https://tour-guide-ks4n.onrender.com/tourguide/"
+    url = "https://tour-guide-ks4n.onrender.com/tourguide"
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
