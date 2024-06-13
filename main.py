@@ -256,21 +256,6 @@ async def get_kartu(kartu_id: int):
             return Bank(**card)
     raise HTTPException(status_code=404, detail="Kartu not found")
 
-# --------------------
-# Check Data Get Kartu Kredit
-# --------------------
-@app.get("/kartu_kredit", response_model=List[Bank])
-def get_kartu():
-    return guests
-
-@app.delete("/guests/{nik}")
-def delete_guest(nik: str):
-    index = get_index(guests, 'NIKID', nik)
-    if index is not None:
-        guests.pop(index)
-        return {"message": "Guest deleted successfully"}
-    raise HTTPException(status_code=404, detail="Guest not found")
-
 
 # CRUD operations for Reservations
 async def get_sewa_from_web():
