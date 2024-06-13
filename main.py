@@ -106,7 +106,7 @@ def get_index(data, key, value):
 # CRUD operations for Billings
 
 # --------------------
-# Get Data Bank
+# Bank Endpoint
 # --------------------
 async def get_bank_from_web():
     url = "https://jumantaradev.my.id/api/hotel"  # endpoint kelompok bank
@@ -146,7 +146,7 @@ async def get_bank(bill_id: int):
 #     raise HTTPException(status_code=404, detail="Billing not found")
 
 # --------------------
-# Check Data billing
+# Billing Endpoint
 # --------------------
 
 @app.get("/billings", response_model=list[Billing])
