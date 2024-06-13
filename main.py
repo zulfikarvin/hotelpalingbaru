@@ -116,7 +116,7 @@ async def get_bank_from_web():
 
 class Billing(BaseModel):
     id: int
-    jenis: str
+    jenisKartuKredit: str
     name: str
     total: int
 
