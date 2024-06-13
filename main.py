@@ -100,7 +100,7 @@ class Billing(BaseModel):
     id: int
     jenis: str
     name: str
-    total: str
+    total: int
 
 @app.get("/billings", response_model=List[Billing])
 async def get_billings():
