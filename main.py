@@ -105,6 +105,9 @@ def get_index(data, key, value):
 
 # CRUD operations for Billings
 
+# --------------------
+# Get Data Bank
+# --------------------
 async def get_bank_from_web():
     url = "https://jumantaradev.my.id/api/hotel"  # endpoint kelompok bank
     response = requests.get(url)
@@ -114,41 +117,58 @@ async def get_bank_from_web():
     else:
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch data from the bank API.")
 
-class Billing(BaseModel):
+class Bank(BaseModel):
     id: int
     jenisKartuKredit: str
     name: str
     total: int
 
-@app.get("/billings", response_model=List[Billing])
-async def get_billings():
+@app.get("/bank", response_model=List[Bank])
+async def get_bank():
     billings = await get_bank_from_web()
     return billings
 
-@app.get("/billings/{bill_id}", response_model=Optional[Billing])
-async def get_billing(bill_id: int):
+@app.get("/bank/{bill_id}", response_model=Optional[Bank])
+async def get_bank(bill_id: int):
     billings = await get_bank_from_web()  # Fetch billings
     for billing in billings:
         if billing['id'] == bill_id:
-            return Billing(**billing)
+            return Bank(**billing)
     raise HTTPException(status_code=404, detail="Billing not found")
+
+# @app.delete("/billings/{bill_id}")
+# async def delete_billing(bill_id: int):
+#     billings = await get_bank_from_web()  # Fetch billings
+#     for billing in billings:
+#         if billing['id'] == bill_id:
+#             billings.pop(billing)
+#             return {"message": "Billing deleted successfully"}
+#     raise HTTPException(status_code=404, detail="Billing not found")
+
+# --------------------
+# Check Data billing
+# --------------------
+
+@app.get("/billings", response_model=list[Billing])
+def get_billing():
+    return billings
 
 @app.post("/billings", response_model=Billing)
 async def create_billing(billing: Billing):
     # Logic to create a new billing
-    return billing
+    return billings
 
 @app.put("/billings/{bill_id}", response_model=Billing)
 async def update_billing(bill_id: int, billing: Billing):
     # Logic to update billing with given bill_id
-    return billing
+    return billings
 
 @app.delete("/billings/{bill_id}")
 async def delete_billing(bill_id: int):
-    billings = await get_bank_from_web()  # Fetch billings
-    for billing in billings:
-        if billing['id'] == bill_id:
-            billings.pop(billing)
+    index = get_index(billings, 'BillID', bill_id)  # Fetch billings
+    for bill in index:
+        if index['id'] == bill_id:
+            index.pop(bill)
             return {"message": "Billing deleted successfully"}
     raise HTTPException(status_code=404, detail="Billing not found")
 
