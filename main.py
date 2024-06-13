@@ -136,15 +136,6 @@ async def get_bank(bill_id: int):
             return Bank(**billing)
     raise HTTPException(status_code=404, detail="Billing not found")
 
-# @app.delete("/billings/{bill_id}")
-# async def delete_billing(bill_id: int):
-#     billings = await get_bank_from_web()  # Fetch billings
-#     for billing in billings:
-#         if billing['id'] == bill_id:
-#             billings.pop(billing)
-#             return {"message": "Billing deleted successfully"}
-#     raise HTTPException(status_code=404, detail="Billing not found")
-
 # --------------------
 # Billing Endpoint
 # --------------------
