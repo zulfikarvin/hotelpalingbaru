@@ -57,11 +57,11 @@ class Room(BaseModel):
 
 # Dummy data
 billings = [
-    {"BillID": "1", "ReservationID": "1", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "1234"},
-    {"BillID": "2", "ReservationID": "2", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "5689"},
-    {"BillID": "3", "ReservationID": "3", "TotalAmount": 4000000, "PaymentStatus": "Paid", "CreditCardNumber": "1357"},
-    {"BillID": "4", "ReservationID": "4", "TotalAmount": 2000000, "PaymentStatus": "Paid", "CreditCardNumber": "2468"},
-    {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "1987"},
+    {"BillID": "1", "ReservationID": "1", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "3305123456"},
+    {"BillID": "2", "ReservationID": "2", "TotalAmount": 1000000, "PaymentStatus": "Paid", "CreditCardNumber": "3305123457"},
+    {"BillID": "3", "ReservationID": "3", "TotalAmount": 4000000, "PaymentStatus": "Paid", "CreditCardNumber": "3305123458"},
+    {"BillID": "4", "ReservationID": "4", "TotalAmount": 2000000, "PaymentStatus": "Paid", "CreditCardNumber": "3305123459"},
+    {"BillID": "5", "ReservationID": "5", "TotalAmount": 6000000, "PaymentStatus": "Paid", "CreditCardNumber": "3305123460"},
 ]
 
 guests = [
@@ -117,17 +117,20 @@ async def get_bank_from_web():
     else:
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch data from the bank API.")
 
+# Bank Model
 class Bank(BaseModel):
     id: int
-    jenisKartuKredit: str
+    jenisKartuKredit: Optional[str] = None
     name: str
-    total: int
+    total: Optional[int] = None
 
+# Bank Data All
 @app.get("/bank", response_model=List[Bank])
 async def get_bank():
     billings = await get_bank_from_web()
     return billings
 
+# Bank Data by parameter
 @app.get("/bank/{bill_id}", response_model=Optional[Bank])
 async def get_bank(bill_id: int):
     billings = await get_bank_from_web()  # Fetch billings
@@ -140,27 +143,33 @@ async def get_bank(bill_id: int):
 # Billing Endpoint
 # --------------------
 
-@app.get("/billings", response_model=list[Billing])
-def get_billing():
+# Billing Data All
+@app.get("/billings", response_model=List[Billing])
+async def get_all_billings():
     return billings
 
+# Edit Billing Data
 @app.post("/billings", response_model=Billing)
 async def create_billing(billing: Billing):
-    # Logic to create a new billing
-    return billings
+    billings.append(billing.dict())
+    return billing
 
+# Create Billing Data
 @app.put("/billings/{bill_id}", response_model=Billing)
-async def update_billing(bill_id: int, billing: Billing):
-    # Logic to update billing with given bill_id
-    return billings
+async def update_billing(bill_id: str, updated_billing: Billing):
+    index = get_index(billings, 'BillID', bill_id)
+    if index is not None:
+        billings[index] = updated_billing.dict()
+        return updated_billing
+    raise HTTPException(status_code=404, detail="Billing not found")
 
+# Delete Billing Data
 @app.delete("/billings/{bill_id}")
-async def delete_billing(bill_id: int):
-    index = get_index(billings, 'BillID', bill_id)  # Fetch billings
-    for bill in index:
-        if index['id'] == bill_id:
-            index.pop(bill)
-            return {"message": "Billing deleted successfully"}
+async def delete_billing(bill_id: str):
+    index = get_index(billings, 'BillID', bill_id)
+    if index is not None:
+        billings.pop(index)
+        return {"message": "Billing deleted successfully"}
     raise HTTPException(status_code=404, detail="Billing not found")
 
 # CRUD operations for Guests
